@@ -1,0 +1,137 @@
+{
+  "regions": {
+    "RegionSpatialFormat": {
+      "key": "spatialFormat",
+      "values": [
+        "None or not applicable",
+        "2D (tissue or flow)",
+        "M-Mode",
+        "Spectral",
+        "Wave form",
+        "Graphics"
+      ]
+    },
+    "RegionDataType": {
+      "key": "dataType",
+      "values": [
+        "None or not applicable",
+        "Tissue",
+        "Color Flow",
+        "PW Spectral Doppler",
+        "CW Spectral Doppler",
+        "Doppler Mean Trace",
+        "Doppler Mode Trace",
+        "Doppler Max Trace",
+        "Volume Trace",
+        "ECG Trace",
+        "Pulse Trace",
+        "Phonocardiogram Trace",
+        "Gray bar",
+        "Color Bar",
+        "Integrated Backscatter",
+        "Area Trace",
+        "d(area)/dt",
+        "Other Physiological (Amplitude vs. Time) input"
+      ]
+    },
+    "RegionFlags": {
+      "key": "flags",
+      "values": [
+        {
+          "numberOfBits": 1,
+          "key": "priority",
+          "flag": [
+            0,
+            1
+          ]
+        },
+        {
+          "numberOfBits": 1,
+          "key": "scalingProtection",
+          "flag": [
+            "Not Protected",
+            "Protected"
+          ]
+        },
+        {
+          "numberOfBits": 1,
+          "key": "dopplerScaleType",
+          "flag": [
+            "Velocity",
+            "Frequency"
+          ]
+        },
+        {
+          "numberOfBits": 2,
+          "key": "scrollingRegion",
+          "flag": [
+            "Unspecified",
+            "Scrolling",
+            "Sweeping",
+            "Sweeping then Scrolling"
+          ]
+        }
+      ]
+    },
+    "RegionLocationMinX0": {
+      "key": "x"
+    },
+    "RegionLocationMinY0": {
+      "key": "y"
+    },
+    "RegionLocationMaxX1": {
+      "key": "width"
+    },
+    "RegionLocationMaxY1": {
+      "key": "height"
+    },
+    "ReferencePixelX0": {
+      "key": "x"
+    },
+    "ReferencePixelY0": {
+      "key": "y"
+    },
+    "PhysicalDeltaX": {
+      "key": "pixelRatioX"
+    },
+    "PhysicalDeltaY": {
+      "key": "pixelRatioY"
+    },
+    "PhysicalUnitsXDirection": {
+      "key": "unitX",
+      "values": [
+        "None or not applicable",
+        "Percent",
+        "dB",
+        "cm",
+        "seconds",
+        "hertz",
+        "dB/seconds",
+        "cm/sec",
+        "cm^2",
+        "cm^2/sec",
+        "cm^3",
+        "cm^3/sec",
+        "degrees"
+      ]
+    },
+    "PhysicalUnitsYDirection": {
+      "key": "unitY",
+      "values": [
+        "None or not applicable",
+        "Percent",
+        "dB",
+        "cm",
+        "seconds",
+        "hertz",
+        "dB/seconds",
+        "cm/sec",
+        "cm^2",
+        "cm^2/sec",
+        "cm^3",
+        "cm^3/sec",
+        "degrees"
+      ]
+    }
+  }
+}

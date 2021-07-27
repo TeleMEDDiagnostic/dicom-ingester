@@ -1,0 +1,54 @@
+DICOM					XML
+PatiendID (0010. 0020)			Patient ID		FOUND
+PatientName (0010, 0010)		Patient LastName	FOUND
+					Patient FirstName	FOUND
+PatientBirthDate (0010, 0030)		Patient DOB		FOUND
+PatientSex (0010, 0040)			Patient Gender		FOUND
+EthnicGroup (0010, 2160)		Patient Ethnic		FOUND
+PatientWeight (0010, 1030)		Patient Weight		FOUND
+PatientSize?? (0010, 1020)		Patient Height		FOUND
+???					Patient Pacemaker	NOT FOUND
+
+ManufacturerModelName (0008, 1090)	DeviceName		FOUND
+SoftwareVersion (0018, 1020)		Device Model		FOUND
+DeviceSerialNumber (0018, 1000)		Device Serial Number	FOUND
+Manufacturer?? (0008, 0070)		Vendor Name		FOUND
+
+Modality?? (0008, 0060)			TestType		FOUND
+PerformedProcedure
+StudyDate (0008, 0020)			TestDate		FOUND
+StudyTime (0008, 0030)			TestTime		FOUND
+
+SamplingFrequency (003a, 001a)	SampleRate		FOUND
+
+WaveformBitsStored?? (003a, 021a)	Resolution		FOUND
+WaveformBitsAllocated (5400, 1004)
+NumberOfWaveformSamples			LeadSampleCount		FOUND
+???					MedianSampleCount	NOT FOUND
+
+NotchFilter				ACFilter		NOT FOUND
+FilterHighFrequency (003a, 0221)	HighPass Filter		FOUND (CHECK)
+FilterLowFrequency (003a, 0220)		LowPass Filter		FOUND (CHECK)
+
+					LeadType		NOT FOUND
+ChannelDefinitionSequence (003a, 0200)	LeadData LeadCount = "12"  (1-n)
+
+					MedianData MeadianCount = "12"
+
+WaveformAnnotationSequence (0040, b020)	ECGMeasurement
+
+
+------------------------------------------------------------------
+			Unmatched Fields
+
+ChannelBaseline
+ChannelSensitivity
+ChannelSensitivityCorrectionFactor
+
+
+					MedianData
+					Qduration
+Max P and Min P				Pamplitud
+					R1Amplitude
+
+					Interpretation Group

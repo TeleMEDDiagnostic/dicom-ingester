@@ -1,0 +1,340 @@
+#! /usr/bin/env python
+# -*- coding utf utf-8 -*-
+
+import urllib3
+import json
+import io
+import os
+import threading
+import numpy
+import pydicom
+import xml.etree.ElementTree as ET
+import uuid
+import time
+import subprocess
+
+import parsers.xmlTools as EX
+import parsers.imageParser as ip
+import parsers.waveforParser as wf
+import parsers.reportParser as sr
+
+
+def parser(dataSet, obj, root):
+  
+    modality = pydicom.tag.Tag(0x0008,0x0060)
+
+    patientID = EX.toStr(dataSet.get(pydicom.tag.Tag(0x0010, 0x0020)).value)
+    studyID = EX.toStr(dataSet.get(pydicom.tag.Tag(0x0020, 0x000d)).value)
+    seriesID = EX.toStr(dataSet.get(pydicom.tag.Tag(0x0020, 0x000e)).value)
+    instanceID = EX.toStr(dataSet.get(pydicom.tag.Tag(0x008, 0x0018)).value)
+    patientDirectory = os.path.join(obj['folderForPatients'], patientID, studyID, seriesID, instanceID)
+
+    if not os.path.exists(patientDirectory):
+        os.makedirs(patientDirectory)
+
+    # ECG
+    if EX.toStr(dataSet.get(modality).value) == "ECG":
+        waveformSequence = 0
+        waveformAnnotationDE = dataSet.get(pydicom.tag.Tag(0x0040, 0xb020))
+
+        for elm in dataSet.iterall():
+            # Finding waveformSequencem tag(0x5400, 0x0100)
+            if elm.tag.group == pydicom.tag.Tag(0x5400, 0x0100).group and elm.tag.element == pydicom.tag.Tag(0x5400, 0x0100).element:
+                waveformSequence = elm.value[0]
+                break
+
+        if waveformSequence != 0 and waveformAnnotationDE is not None:
+            wf.waveformParser(waveformSequence, waveformAnnotationDE, root)
+        else:
+            print("The file doesn't have a waveform or a waveform annotation")
+
+    # Ultrasound
+    elif EX.toStr(dataSet.get(modality).value) in ["US", "IVUS", ]:
+        #TODO(Josue) The way I check if \xff\xc3 is in PixelData should consider \xff\xda. Right now it doesn't (it works though)
+        if (dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value == "RGB" and b'\xff\xc3' in dataSet.PixelData) or dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value == "MONOCHROME2":
+            oldDcm = "old" + str(time.time()) + ".dcm" 
+            ljpeg = "ljpeg" + str(time.time()) + ".dcm"
+            pydicom.write_file(oldDcm, dataSet, True)
+            subprocess.run(["gdcmconv", "--raw", oldDcm, ljpeg])
+            ljpegDataSet = pydicom.dcmread(ljpeg)
+            ip.imageToPng(ljpegDataSet, obj)
+            subprocess.run(["rm", oldDcm])
+            subprocess.run(["rm", ljpeg])
+        else:
+            ip.imageToPng(dataSet, obj)
+
+    elif EX.toStr(dataSet.get(modality).value) == "SR":
+        sr.extractReport(dataSet, obj)
+
+    else:
+        print("Modality not implemented")
+
+    """ End of individual sections """
+
+    print("Processed: Patient - " + patientID + ", Test - " + studyID + ", Instance - " + instanceID)
+
+
+def addPatientAndTestToXML(dataSet):
+    root = ET.Element("Main")
+
+    """
+        Patient information section
+    """
+    #print("\n*** Patient Info Section ***")
+    patientFieldTuple = ('PatientID',       # PatientID
+                        'PatientName',      # PatientName
+                        'PatientDOB',       # PatientBirthDate
+                        'PatientGender',    # PatientSex
+                        'PatientEthnic',    # EthnicGroup
+                        'PatientWeight',    # PatientWeight
+                        'PatientHeight')    # PatientSize
+
+    patientTagTuple = (pydicom.tag.Tag(0x0010,0x0020),    # PatientID
+                        pydicom.tag.Tag(0x0010,0x0010),   # PatientName
+                        pydicom.tag.Tag(0x0010,0x0030),   # PatientBirthDate
+                        pydicom.tag.Tag(0x0010,0x0040),   # PatientSex
+                        pydicom.tag.Tag(0x0010,0x2160),   # EthnicGroup
+                        pydicom.tag.Tag(0x0010,0x1030),   # PatientWeight
+                        pydicom.tag.Tag(0x0010,0x1020))   # PatientSize
+    # PaceMaker is missing!
+    pt = ET.SubElement(root, "Patient")
+
+    EX.insertTupleInXML(patientFieldTuple, patientTagTuple, dataSet, pt)
+
+    """
+        Device information section
+    """
+    #print("\n*** Device Information Section ***")
+    deviceFieldTuple = ('DeviceName',           # ManufacturerModelName
+                        'DeviceModel',          # SoftwareVersion
+                        'DeviceSerialNumber',   # DeviceSerialNumber
+                        'VendorName')           # Manufacturer
+    
+    deviceTagTuple = (pydicom.tag.Tag(0x0008,0x1090),   # ManufacturerModelName
+                        pydicom.tag.Tag(0x0018,0x1020), # SoftwareVersion
+                        pydicom.tag.Tag(0x0018,0x1000), # DeviceSerialNumber
+                        pydicom.tag.Tag(0x0008,0x0070)) # Manufacturer
+
+    ts = ET.SubElement(root, "Test")
+    EX.insertTupleInXML(deviceFieldTuple, deviceTagTuple, dataSet, ts)
+
+    """
+        Test information section
+    """
+    #print("\n*** Test Information Section ***")
+    testFieldTuple = ('TestType',      # Modality
+                    'TestDescription', # StudyDescription
+                    'TestDate',        # StudyDate
+                    'TestTime')        # StudyTime
+
+    testTagTuple = (pydicom.tag.Tag(0x0008,0x0060),     # Modality
+                    pydicom.tag.Tag(0x0008,0x1030),     # StudyDescription
+                    pydicom.tag.Tag(0x0008,0x0020),     # StudyDate
+                    pydicom.tag.Tag(0x0008,0x0030))     # StudyTime
+
+    EX.insertTupleInXML(testFieldTuple, testTagTuple, dataSet, ts)
+
+    return root
+
+
+def isValidDICOMfile(dicomPath):
+    try:
+        dataSet = pydicom.dcmread(dicomPath)
+
+    except pydicom.errors.InvalidDicomError:
+        print("Dicom file '" + dicomPath + "' is missing metadata information")
+
+    except FileNotFoundError:
+        print("File '" + dicomPath + "' not found")
+
+    else:
+        return dataSet
+
+def getTestsFromPACS(patientID, obj):
+    http = urllib3.PoolManager()
+
+    param = {"PatientID": patientID}
+    headerForQuery = urllib3.make_headers(
+        {"Accept": "application/json"}, basic_auth="ostep:OSTEP"
+    )
+    headerForRetrieve = urllib3.make_headers(
+        {
+            "Accept": "multipart/related",
+            "type": "application/dicom",
+            "transfer-syntax": "1.2.840.10008.1.2.4.51",
+        },
+        basic_auth="ostep:OSTEP",
+    )
+
+    serverURL = (
+        obj["server"]["url"]
+        + ":"
+        + obj["server"]["port"]
+        + obj["server"]["serviceEndpoint"]
+    )
+    print("Connecting to " + serverURL)
+
+    historicalData = []
+    try:
+        query = http.request(
+            "GET", serverURL + "instances", headers=headerForQuery, fields=param
+        )
+    except urllib3.exceptions.MaxRetryError:
+        print("Connection rejected or timed out trying to connect")
+    else:
+
+        if query.status == 200:
+            files = json.loads(query.data)
+
+            for instance in files:
+                request = http.request(
+                    "GET",
+                    serverURL
+                    + "studies/"
+                    + str(instance["0020000D"]["Value"][0])
+                    + "/series/"
+                    + str(instance["0020000E"]["Value"][0])
+                    + "/instances/"
+                    + str(instance["00080018"]["Value"][0]),
+                    headers=headerForRetrieve,
+                    decode_content=True,
+                )
+
+                # This is a wonky way of parsin DICOM files, it works but it should be revised
+                dicomFile = request.data.split(b"\r\n\r\n")
+                historicalData.append(pydicom.dcmread(io.BytesIO(dicomFile[1])))
+
+        else:
+            print("Error: " + str(query.status))
+
+    return historicalData
+
+def getPaths(path):
+    paths = []
+
+    if os.path.isfile(os.path.join(path, "DICOMDIR")):
+      dicomdirFile = isValidDICOMfile(os.path.join(path, "DICOMDIR"))
+      # change this to consider more than one study and more than one series
+      instances = dicomdirFile.patient_records[0].children[0].children[0].children
+      paths = [os.path.join(path, *instance.ReferencedFileID) for instance in instances]
+
+    else:
+        for root, dirs, files in os.walk(path):
+            for file in files:
+                paths.append(os.path.join(root, file))
+
+    return paths
+
+
+def processDataSets(chunk, obj, xml):
+    threadList = []
+    for dicomFile in chunk:
+        dataSet = isValidDICOMfile(dicomFile)
+        if dataSet is not None:
+            t = threading.Thread(target=parser, args=(dataSet, obj, xml))
+            t.start()
+            threadList.append(t)
+
+    for t in threadList:
+        t.join()
+
+
+def initiateIngestion(dicomPath):
+
+    # Validate 'config,json'
+    obj = {}
+    ingesterPath = os.path.dirname(os.path.realpath(__file__))
+    currentPath = os.getcwd()
+    try:
+        with open(os.path.join(ingesterPath, "config.json"), "r") as cfg:
+            obj = json.load(cfg)
+            cfg.close()
+
+            if not os.path.exists(obj["folderForXML"]):
+                print("Path " + obj["folderForXML"] + " doesn't exist or is not accesible")
+                obj["folderForXML"] = currentPath + "/DataIngestor"
+                print("Using default path: " + obj["folderForXML"] + " for XML files")
+
+            if not os.path.exists(obj["folderForPatients"]):
+                print("Path " + obj["folderForPatients"] + " doesn't exist or is not accesible")
+                obj["folderForPatients"] = currentPath + "/DataIngestor"
+                print("Using default path: " + obj["folderForPatients"] + " for images and reports")
+
+            if not (0 < obj["scaleFactor"] < 1):
+                print("The scale factor " + str(obj["scaleFactor"]) + " must be a value between 0 and 1. Resetting it to default: 0.5")
+                obj["scaleFactor"] = 0.5
+
+
+    except FileNotFoundError:
+        print("File config.json not found, creating one with default output path: " + currentPath + "/DataIngestor")
+        obj = {
+            "folderForXML": currentPath + "/DataIngestor",
+            "folderForPatients": currentPath + "/DataIngestor",
+            "server": {
+                "url": "http://localhost",
+                "port": "8042",
+                "serviceEndpoint": "/dicom-web/",
+            },
+            "scaleFactor": 0.5,
+        }
+        with open(
+            os.path.join(ingesterPath, "config.json"), "w"
+        ) as fp:
+            json.dump(obj, fp)
+            fp.close()
+
+    # Process dicomPath passed from CL
+    xmlFile = 0
+    patientID = 0
+    historicalDataSets = []
+
+    if os.path.isfile(dicomPath):
+        dataSet = isValidDICOMfile(dicomPath)
+
+        if dataSet is not None:
+            xmlFile = addPatientAndTestToXML(dataSet)
+            parser(dataSet, obj, xmlFile)
+            patientID = EX.toStr(dataSet.get(pydicom.tag.Tag(0x0010, 0x0020)).value)
+
+    elif os.path.isdir(dicomPath) and len(os.listdir(dicomPath)) != 0:
+        listOfPaths = getPaths(dicomPath)
+
+        ds = pydicom.dcmread(listOfPaths[0])
+        xmlFile = addPatientAndTestToXML(ds)
+        patientID = EX.toStr(ds.get(pydicom.tag.Tag(0x0010, 0x0020)).value)
+
+        FILES_PER_CHUNK = 5
+
+        if FILES_PER_CHUNK > len(listOfPaths):
+            for f in listOfPaths:
+              parser(isValidDICOMfile(f), obj, xmlFile)
+
+        else:
+            chunks = numpy.array_split(listOfPaths, len(listOfPaths) / FILES_PER_CHUNK)
+
+            for chunk in chunks:
+                processDataSets(chunk, obj, xmlFile)
+
+
+    else:
+      print("There was an error processing the provided folder")
+      exit(1)
+    
+    if patientID is not 0:
+      processDataSets(historicalDataSets, obj, xmlFile)        
+            
+      tree = ET.ElementTree(xmlFile)
+      if not os.path.exists(obj['folderForXML']):
+          os.makedirs(obj['folderForXML'])
+
+      uuidForPatient = str(uuid.uuid4())
+      tree.write(obj['folderForXML'] + "/" + patientID + "/" + uuidForPatient + ".xml", xml_declaration = True, encoding = 'utf-8')
+
+
+if __name__ == "__main__":
+    import sys
+
+    if len(sys.argv) < 2:
+        sys.exit("Format: python3 input.dcm")
+    else:
+        initiateIngestion(sys.argv[1])

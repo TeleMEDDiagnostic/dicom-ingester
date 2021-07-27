@@ -1,0 +1,11 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+config.json
+DataIngestor
+
+# Intermediate processing artifacts from ingester.py `parser()`
+ljpeg*.dcm
+old*.dcm

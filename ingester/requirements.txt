@@ -1,0 +1,6 @@
+numpngw==0.0.8
+numpy==1.16.4
+opencv-python==4.1.0.25
+pydicom==1.2.2
+scikit-video==1.1.11
+urllib3==1.25.3
