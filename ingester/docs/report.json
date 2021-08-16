@@ -1,0 +1,127 @@
+{
+	"name": "Adult Echocardiography Procedure Report",
+	"report": {
+		"patient": {
+			"Name": "Mangialardi^Vincenza Laura^^^",
+			"ID": "1750232074",
+			"Sex": "F",
+			"BirthDate": "19330128",
+			"Height": null,
+			"Weight": null,
+			"Accession": "115568",
+			"Sonographer": "ML^^^^",
+			"StudyDescription": "Adult Echo",
+			"ReferringPhysician": "Eric Gangbar^^^^",
+			"ExamDate": "20210531",
+			"StudyDate": "20210531",
+			"SystolicPressure": "122 mmHg",
+			"DiastolicPressure": "50 mmHg",
+			"Surgeries": "69",
+			"BodySurfaceArea": "1.45 m2"
+		},
+		"findingSite": [
+			{
+				"Name": "Left Ventricle",
+				"measurements": [
+					{
+						"Key": "Left Ventricle diastolic major axis",
+						"Unit": "mm",
+						"Value": "65.6",
+						"Infos": [
+							{
+								"Key": "Selection Status",
+								"Value": "Most recent value chosen"
+							},
+							{
+								"Key": "Measurement Method",
+								"Value": "Method of Disks, Single Plane"
+							},
+							{
+								"Key": "Image Mode",
+								"Value": "2D mode"
+							},
+							{
+								"Key": "Image View",
+								"Value": "Apical two chamber"
+							}
+						]
+					},
+					{
+						"Key": "Left Ventricular Diastolic Area",
+						"Unit": "mm2",
+						"Value": "1780",
+						"Infos": [
+							{
+								"Key": "Selection Status",
+								"Value": "Most recent value chosen"
+							},
+							{
+								"Key": "Measurement Method",
+								"Value": "Method of Disks, Single Plane"
+							},
+							{
+								"Key": "Image Mode",
+								"Value": "2D mode"
+							},
+							{
+								"Key": "Image View",
+								"Value": "Apical two chamber"
+							}
+						]
+					}
+				]
+			},
+			{
+				"Name": "Left Atrium",
+				"measurements": [
+					{
+						"Key": "Left Atrium MOD Diam",
+						"Unit": "mm",
+						"Value": "12.3",
+						"Infos": [
+							{
+								"Key": "Selection Status",
+								"Value": "Most recent value chosen"
+							},
+							{
+								"Key": "Cardiac Cycle Point",
+								"Value": "End Systole"
+							},
+							{
+								"Key": "Image View",
+								"Value": "Apical two chamber"
+							},
+							{
+								"Key": "Simpson's Disk Number",
+								"Value": "1"
+							}
+						]
+					},
+					{
+						"Key": "Left Atrium systolic major axis",
+						"Unit": "mm2",
+						"Value": "59",
+						"Infos": [
+							{
+								"Key": "Selection Status",
+								"Value": "Most recent value chosen"
+							},
+							{
+								"Key": "Measurement Method",
+								"Value": "Method of Disks, Single Plane"
+							},
+							{
+								"Key": "Image Mode",
+								"Value": "2D mode"
+							},
+							{
+								"Key": "Image View",
+								"Value": "Apical two chamber"
+							}
+						]
+					}
+				]
+			}
+		]
+	}
+}

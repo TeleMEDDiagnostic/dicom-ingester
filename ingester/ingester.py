@@ -51,7 +51,7 @@ def parser(dataSet, obj, root):
     # Ultrasound
     elif EX.toStr(dataSet.get(modality).value) in ["US", "IVUS", ]:
         #TODO(Josue) The way I check if \xff\xc3 is in PixelData should consider \xff\xda. Right now it doesn't (it works though)
-        if (dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value == "RGB" and b'\xff\xc3' in dataSet.PixelData) or dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value == "MONOCHROME2":
+        if ((dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value == "RGB" and b'\xff\xc3' in dataSet.PixelData) or dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value == "MONOCHROME2") and EX.toStr(dataSet.get(modality).value) != "SR":
             oldDcm = "old" + str(time.time()) + ".dcm" 
             ljpeg = "ljpeg" + str(time.time()) + ".dcm"
             pydicom.write_file(oldDcm, dataSet, True)
@@ -64,7 +64,7 @@ def parser(dataSet, obj, root):
             ip.imageToPng(dataSet, obj)
 
     elif EX.toStr(dataSet.get(modality).value) == "SR":
-        sr.extractReport(dataSet, obj)
+        sr.extractReport(dataSet)
 
     else:
         print("Modality not implemented")

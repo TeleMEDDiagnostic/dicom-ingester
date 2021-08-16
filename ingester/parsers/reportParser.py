@@ -6,8 +6,12 @@ import pydicom
 import xml.etree.ElementTree as ET
 
 import parsers.xmlTools as EX
-
-
+srData = { "name" : "Adult Echocardiography Procedure Report",
+        "report" : {
+        "patient" : {},
+        "findingSite" : []
+        }
+    }
 def processChild(dataSet, level, parent, elements):
     counter = 0
     spaces = "     " * level
@@ -17,9 +21,19 @@ def processChild(dataSet, level, parent, elements):
         #print(spaces + "Value Type " + EX.toStr(i.get(pydicom.tag.Tag(0x0040, 0xa040)).value))
         #print(i)
 
-        value = spaces
+        #EX.toStr(dataSet.get(pydicom.tag.Tag(0x0010, 0x0020)).value)
+
+        value = spaces;
+        val = ""
+        key= ""
+        unit=""
         if i.get(pydicom.tag.Tag(0x0040, 0xa040)).value == "TEXT":
-            value += i.get(pydicom.tag.Tag(0x0040, 0xa160)).value
+            conceptNameCodeDataSet = i.get(pydicom.tag.Tag(0x0040, 0xa043)).value[0]
+            value += EX.toStr(conceptNameCodeDataSet.get(pydicom.tag.Tag(0x0008, 0x0104)).value) + ": " + i.get(pydicom.tag.Tag(0x0040, 0xa160)).value
+            key = EX.toStr(conceptNameCodeDataSet.get(pydicom.tag.Tag(0x0008, 0x0104)).value)
+            val = i.get(pydicom.tag.Tag(0x0040, 0xa160)).value
+            unit = ""
+
 
         elif i.get(pydicom.tag.Tag(0x0040, 0xa040)).value == "PNAME":
             value += EX.toStr(i.get(pydicom.tag.Tag(0x0040, 0xa123)).value)
@@ -30,36 +44,63 @@ def processChild(dataSet, level, parent, elements):
             measuredUnitDataSet = measuredValueDataSet.get(pydicom.tag.Tag(0x0040, 0x08ea)).value[0]
             conceptNameCodeDataSet = i.get(pydicom.tag.Tag(0x0040, 0xa043)).value[0]
             value += EX.toStr(conceptNameCodeDataSet.get(pydicom.tag.Tag(0x0008, 0x0104)).value) + ": " + EX.toStr(measuredValueDataSet.get(pydicom.tag.Tag(0x0040, 0xa30a)).value) + " " + EX.toStr(measuredUnitDataSet.get(pydicom.tag.Tag(0x0008, 0x0104)).value)
+            key = EX.toStr(conceptNameCodeDataSet.get(pydicom.tag.Tag(0x0008, 0x0104)).value)
+            val = EX.toStr(measuredValueDataSet.get(pydicom.tag.Tag(0x0040, 0xa30a)).value) 
+            unit = EX.toStr(measuredUnitDataSet.get(pydicom.tag.Tag(0x0008, 0x0104)).value)
 
         elif i.get(pydicom.tag.Tag(0x0040, 0xa040)).value == "CODE":
             conceptCodeDataSet = i.get(pydicom.tag.Tag(0x0040, 0xa168)).value[0]
             conceptNameCodeDataSet = i.get(pydicom.tag.Tag(0x0040, 0xa043)).value[0]
             value += EX.toStr(conceptNameCodeDataSet.get(pydicom.tag.Tag(0x0008, 0x0104)).value) + ": " + EX.toStr(conceptCodeDataSet.get(pydicom.tag.Tag(0x0008, 0x0104)).value)
+            key = EX.toStr(conceptNameCodeDataSet.get(pydicom.tag.Tag(0x0008, 0x0104)).value)
+            val = EX.toStr(conceptCodeDataSet.get(pydicom.tag.Tag(0x0008, 0x0104)).value)
+            unit = ""
 
         elif i.get(pydicom.tag.Tag(0x0040, 0xa040)).value == "DATETIME":
-            value += EX.toStr(i.get(pydicom.tag.Tag(0x0040, 0xa120)).value)
+            conceptNameCodeDataSet = i.get(pydicom.tag.Tag(0x0040, 0xa043)).value[0]
+            value += EX.toStr(conceptNameCodeDataSet.get(pydicom.tag.Tag(0x0008, 0x0104)).value) + ": " + EX.toStr(i.get(pydicom.tag.Tag(0x0040, 0xa120)).value)
+            key = EX.toStr(conceptNameCodeDataSet.get(pydicom.tag.Tag(0x0008, 0x0104)).value)
+            val = EX.toStr(i.get(pydicom.tag.Tag(0x0040, 0xa120)).value)
+            unit = ""
 
         elif i.get(pydicom.tag.Tag(0x0040, 0xa040)).value == "DATE":
-            value += EX.toStr(i.get(pydicom.tag.Tag(0x0040, 0xa121)).value)
+            conceptNameCodeDataSet = i.get(pydicom.tag.Tag(0x0040, 0xa043)).value[0]
+            value += EX.toStr(conceptNameCodeDataSet.get(pydicom.tag.Tag(0x0008, 0x0104)).value) + ": " + EX.toStr(i.get(pydicom.tag.Tag(0x0040, 0xa121)).value)
+            key = EX.toStr(conceptNameCodeDataSet.get(pydicom.tag.Tag(0x0008, 0x0104)).value)
+            val = EX.toStr(i.get(pydicom.tag.Tag(0x0040, 0xa121)).value)
+            unit = ""
             
         elif i.get(pydicom.tag.Tag(0x0040, 0xa040)).value == "UIDREF":
             value += EX.toStr(i.get(pydicom.tag.Tag(0x0040, 0xa124)).value)
 
-        if value is not None:
+
+        if val is not None:
             print(value)
+            if key != "" and val != "":
+                fillSRData(key, val, unit, parent, "")
 
         contentSequence = i.get(pydicom.tag.Tag(0x0040, 0xa730))
-        print("\n" + spaces + "Child " + str(counter) + ", level " + str(level))
+        #print("\n" + spaces + "Child " + str(counter) + ", level " + str(level))
         if contentSequence is not None:
-            print(spaces + "Entering level ------------" + str(level + 1))
-            processChild(contentSequence.value, level + 1, counter, elements)
-            print(spaces + "Exiting level ------------" + str(level + 1))
+            #print(spaces + "Entering level ------------" + str(level + 1))            
+            processChild(contentSequence.value, level + 1, parent, elements)
+            #print(spaces + "Exiting level ------------" + str(level + 1))            
         counter += 1
         elements[0] += 1
+        
 
+def fillSRData(key, value, unit, parent, currentChild):
+    obj = {}
+    if parent == "patient":
+        obj[key] = value
+        srData["report"]["patient"] |= obj
 
 def extractReport(dataSet):
     print("I'm extracting the report")
+
+   
+
+    
 
     # Remove this when integrated with main since the checking will happen somewhere else
     test = dataSet.get(pydicom.tag.Tag(0x0040, 0xa730))
@@ -83,7 +124,7 @@ def extractReport(dataSet):
         counter = 0
         numberOfElements = []
         numberOfElements.append(0)
-        processChild(dataSet.get(pydicom.tag.Tag(0x0040, 0xa730)).value, 0, counter, numberOfElements)
+        processChild(dataSet.get(pydicom.tag.Tag(0x0040, 0xa730)).value, 0, "patient", numberOfElements)
 
         print("Number of elements " + str(numberOfElements[0]))
         
