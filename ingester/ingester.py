@@ -64,7 +64,7 @@ def parser(dataSet, obj, root):
             ip.imageToPng(dataSet, obj)
 
     elif EX.toStr(dataSet.get(modality).value) == "SR":
-        sr.extractReport(dataSet)
+        sr.extractReport(dataSet, obj)
 
     else:
         print("Modality not implemented")

@@ -3,18 +3,26 @@
 
 import sys
 import pydicom
+import json
 import xml.etree.ElementTree as ET
 
 import parsers.xmlTools as EX
-srData = { "name" : "Adult Echocardiography Procedure Report",
+srData = { "name" : "Adult Echocardiography Report",
         "report" : {
         "patient" : {},
-        "findingSite" : []
+        "findingSite" : [],
+        "userDefined" :[]
         }
     }
-def processChild(dataSet, level, parent, elements):
+
+
+
+
+def processChild(dataSet, level, parent, elements, child):
     counter = 0
     spaces = "     " * level
+
+   
 
     for i in dataSet:
         #print(spaces + "Relationship type " + EX.toStr(i.get(pydicom.tag.Tag(0x0040, 0xa010)).value))
@@ -76,31 +84,61 @@ def processChild(dataSet, level, parent, elements):
 
         if val is not None:
             print(value)
-            if key != "" and val != "":
-                fillSRData(key, val, unit, parent, "")
+            if key == "Finding Site"  and level != 3:
+                parent = key
+                child = val
+                srData["report"]["findingSite"].append(createFindingSite(child))
+                             
+                
+
+            if key != "" and val != "" and key != "Finding Site":
+                fillSRData(key, val, unit, parent, child, level)
 
         contentSequence = i.get(pydicom.tag.Tag(0x0040, 0xa730))
         #print("\n" + spaces + "Child " + str(counter) + ", level " + str(level))
         if contentSequence is not None:
-            #print(spaces + "Entering level ------------" + str(level + 1))            
-            processChild(contentSequence.value, level + 1, parent, elements)
-            #print(spaces + "Exiting level ------------" + str(level + 1))            
+            print(spaces + "Entering level ------------" + str(level + 1))            
+            processChild(contentSequence.value, level + 1, parent, elements, child)
+            print(spaces + "Exiting level ------------" + str(level + 1))            
         counter += 1
         elements[0] += 1
         
 
-def fillSRData(key, value, unit, parent, currentChild):
+def fillSRData(key, value, unit, parent, currentChild, level):
     obj = {}
+
+
+    if parent == "Finding Site":
+        if level == 2:
+            index = len( srData["report"]["findingSite"])
+
+            index2 = len(srData["report"]["findingSite"][index -1]["measurements"])
+
+            srData["report"]["findingSite"][index -1]["measurements"].append( {
+                "Key": key,
+                "Value": value,
+                "Unit": unit,
+                "Infos": []
+            })
+        if level == 3:
+            index = len( srData["report"]["findingSite"])
+            index2 = len(srData["report"]["findingSite"][index -1]["measurements"])
+            srData["report"]["findingSite"][index -1]["measurements"][index2-1]["Infos"].append({"Key": key, "Value": value})
+
+
     if parent == "patient":
         obj[key] = value
         srData["report"]["patient"] |= obj
 
-def extractReport(dataSet):
-    print("I'm extracting the report")
-
-   
-
     
+
+def createFindingSite(Name):
+    return { "Name": Name,
+    "measurements": []
+    }
+
+def extractReport(dataSet, obj):
+    print("I'm extracting the report")
 
     # Remove this when integrated with main since the checking will happen somewhere else
     test = dataSet.get(pydicom.tag.Tag(0x0040, 0xa730))
@@ -119,15 +157,24 @@ def extractReport(dataSet):
         print(dataSet.get(pydicom.tag.Tag(0x0042, 0x0011)))
         print(dataSet.get(pydicom.tag.Tag(0x0040, 0xDB73)))
 
+        conceptNameCodeDataSet = dataSet.get(pydicom.tag.Tag(0x0040, 0xa043)).value[0]
+
+        srData["name"] = EX.toStr(EX.toStr(conceptNameCodeDataSet.get(pydicom.tag.Tag(0x0008, 0x0104)).value))
+
         print("Length of content sequence " + str(len(dataSet.get(pydicom.tag.Tag(0x0040, 0xa730)).value)))
         print("Type of content sequence " + str(type(dataSet.get(pydicom.tag.Tag(0x0040, 0xa730)).value[0])))
         counter = 0
         numberOfElements = []
         numberOfElements.append(0)
-        processChild(dataSet.get(pydicom.tag.Tag(0x0040, 0xa730)).value, 0, "patient", numberOfElements)
+        processChild(dataSet.get(pydicom.tag.Tag(0x0040, 0xa730)).value, 0, "patient", numberOfElements, "")
 
         print("Number of elements " + str(numberOfElements[0]))
         
+        patientDir = obj["folderForPatients"] + "/" + "1750232074"
+
+        with open(patientDir + "/report.json", 'w') as fp:
+            json.dump(srData, fp)
+            fp.close()
         
         #print(dataSet.get(pydicom.tag.Tag(0x0040, 0xa504)).value)
     else:
