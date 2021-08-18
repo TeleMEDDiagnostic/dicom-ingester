@@ -11,12 +11,11 @@ srData = { "name" : "Adult Echocardiography Report",
         "report" : {
         "patient" : {},
         "findingSite" : [],
-        "userDefined" :[]
+        "userDefined" :{}
         }
-    }
+    }   
 
-
-
+label = ""
 
 def processChild(dataSet, level, parent, elements, child):
     counter = 0
@@ -32,6 +31,7 @@ def processChild(dataSet, level, parent, elements, child):
         #EX.toStr(dataSet.get(pydicom.tag.Tag(0x0010, 0x0020)).value)
 
         value = spaces;
+       
         val = ""
         key= ""
         unit=""
@@ -50,7 +50,7 @@ def processChild(dataSet, level, parent, elements, child):
         elif i.get(pydicom.tag.Tag(0x0040, 0xa040)).value == "NUM":
             measuredValueDataSet = i.get(pydicom.tag.Tag(0x0040, 0xa300)).value[0]
             measuredUnitDataSet = measuredValueDataSet.get(pydicom.tag.Tag(0x0040, 0x08ea)).value[0]
-            conceptNameCodeDataSet = i.get(pydicom.tag.Tag(0x0040, 0xa043)).value[0]
+            conceptNameCodeDataSet = i.get(pydicom.tag.Tag(0x0040, 0xa043)).value[0]            
             value += EX.toStr(conceptNameCodeDataSet.get(pydicom.tag.Tag(0x0008, 0x0104)).value) + ": " + EX.toStr(measuredValueDataSet.get(pydicom.tag.Tag(0x0040, 0xa30a)).value) + " " + EX.toStr(measuredUnitDataSet.get(pydicom.tag.Tag(0x0008, 0x0104)).value)
             key = EX.toStr(conceptNameCodeDataSet.get(pydicom.tag.Tag(0x0008, 0x0104)).value)
             val = EX.toStr(measuredValueDataSet.get(pydicom.tag.Tag(0x0040, 0xa30a)).value) 
@@ -88,11 +88,18 @@ def processChild(dataSet, level, parent, elements, child):
                 parent = key
                 child = val
                 srData["report"]["findingSite"].append(createFindingSite(child))
-                             
-                
 
-            if key != "" and val != "" and key != "Finding Site":
-                fillSRData(key, val, unit, parent, child, level)
+        # if val is not None:
+        #     print(value)
+        #     if key == "Label"  and level == 2:
+        #         parent = key
+        #         label = val
+                #srData["report"]["findingSite"].append(createFindingSite("userDefined"))
+                            
+            
+
+            if key != "" and val != "" and key != "Finding Site" and key != "Label":
+                fillSRData(key, val, unit, parent, child, level, label)
 
         contentSequence = i.get(pydicom.tag.Tag(0x0040, 0xa730))
         #print("\n" + spaces + "Child " + str(counter) + ", level " + str(level))
@@ -104,7 +111,7 @@ def processChild(dataSet, level, parent, elements, child):
         elements[0] += 1
         
 
-def fillSRData(key, value, unit, parent, currentChild, level):
+def fillSRData(key, value, unit, parent, currentChild, level, _label):
     obj = {}
 
 
@@ -129,6 +136,9 @@ def fillSRData(key, value, unit, parent, currentChild, level):
     if parent == "patient":
         obj[key] = value
         srData["report"]["patient"] |= obj
+    # if parent == "Label":
+    #     obj[_label] = value
+    #     srData["report"]["userDefined"] |= obj
 
     
 

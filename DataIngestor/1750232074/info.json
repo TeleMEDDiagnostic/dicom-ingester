@@ -1,0 +1,1 @@
+{"folderForXML": "D:\\TeleMED Projects\\dicom-ingester/DataIngestor", "folderForPatients": "D:\\TeleMED Projects\\dicom-ingester/DataIngestor", "server": {"url": "http://localhost", "port": "8042", "serviceEndpoint": "/dicom-web/"}, "scaleFactor": 0.5}
