@@ -102,8 +102,8 @@ def processChild(dataSet, level, parent, elements, child):
                             
             
 
-            if key != "" and val != "" and key != "Finding Site" :
-                fillSRData(key, val, unit, parent, child, level, label)
+        if key != "" and val != "" and key != "Finding Site" :
+            fillSRData(key, val, unit, parent, child, level, label)
 
         contentSequence = i.get(pydicom.tag.Tag(0x0040, 0xa730))
         #print("\n" + spaces + "Child " + str(counter) + ", level " + str(level))
@@ -113,7 +113,13 @@ def processChild(dataSet, level, parent, elements, child):
             print(spaces + "Exiting level ------------" + str(level + 1))            
         counter += 1
         elements[0] += 1
-        
+
+def chechIfExist(data, key, value, unit):
+    for item in data:
+        if(item["Key"] == key and item["Value"] == value):
+            return False
+    return True
+
 
 def fillSRData(key, value, unit, parent, currentChild, level, label):
     obj = {}
@@ -125,12 +131,16 @@ def fillSRData(key, value, unit, parent, currentChild, level, label):
 
             index2 = len(srData["report"]["findingSite"][index -1]["measurements"])
 
-            srData["report"]["findingSite"][index -1]["measurements"].append( {
-                "Key": key,
-                "Value": value,
-                "Unit": unit,
-                "Infos": []
-            })
+            srData["report"]["findingSite"][index -1]["measurements"]
+
+            res = chechIfExist(srData["report"]["findingSite"][index -1]["measurements"], key, value, unit)
+            if(res):
+                srData["report"]["findingSite"][index -1]["measurements"].append( {
+                    "Key": key,
+                    "Value": value,
+                    "Unit": unit,
+                    "Infos": []
+                })
         if level == 3:
             index = len( srData["report"]["findingSite"])
             index2 = len(srData["report"]["findingSite"][index -1]["measurements"])
@@ -138,7 +148,8 @@ def fillSRData(key, value, unit, parent, currentChild, level, label):
 
 
     if parent == "patient":
-        obj[key] = value
+        key1 = key.replace(' ', '_')
+        obj[key1] = value
         srData["report"]["patient"] |= obj
 
     if parent == "Label":        
@@ -177,6 +188,10 @@ def extractReport(dataSet, obj):
         print(dataSet.get(pydicom.tag.Tag(0x0400, 0x0510)))
         print(dataSet.get(pydicom.tag.Tag(0x0042, 0x0011)))
         print(dataSet.get(pydicom.tag.Tag(0x0040, 0xDB73)))
+        print(dataSet.get(pydicom.tag.Tag(0x0010, 0x0020)))
+
+
+       
 
         conceptNameCodeDataSet = dataSet.get(pydicom.tag.Tag(0x0040, 0xa043)).value[0]
 
@@ -191,7 +206,7 @@ def extractReport(dataSet, obj):
 
         print("Number of elements " + str(numberOfElements[0]))
         
-        patientDir = obj["folderForPatients"] + "/" + "1750232074"
+        patientDir = obj["folderForPatients"] + "/" + EX.toStr(dataSet.get(pydicom.tag.Tag(0x0010, 0x0020)).value)
 
         with open(patientDir + "/report.json", 'w') as fp:
             json.dump(srData, fp)

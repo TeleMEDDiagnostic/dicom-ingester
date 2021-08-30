@@ -125,12 +125,14 @@ def addPatientAndTestToXML(dataSet):
     testFieldTuple = ('TestType',      # Modality
                     'TestDescription', # StudyDescription
                     'TestDate',        # StudyDate
-                    'TestTime')        # StudyTime
+                    'TestTime',        # StudyTime
+                    'TestUID')         # Study Instance UID        
 
     testTagTuple = (pydicom.tag.Tag(0x0008,0x0060),     # Modality
                     pydicom.tag.Tag(0x0008,0x1030),     # StudyDescription
                     pydicom.tag.Tag(0x0008,0x0020),     # StudyDate
-                    pydicom.tag.Tag(0x0008,0x0030))     # StudyTime
+                    pydicom.tag.Tag(0x0008,0x0030),     # StudyTime
+                    pydicom.tag.Tag(0x0020,0x000D))     # Study Instance UID    
 
     EX.insertTupleInXML(testFieldTuple, testTagTuple, dataSet, ts)
 
