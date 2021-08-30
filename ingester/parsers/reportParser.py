@@ -114,7 +114,7 @@ def processChild(dataSet, level, parent, elements, child):
         counter += 1
         elements[0] += 1
 
-def chechIfExist(data, key, value, unit):
+def chechIfAlreadyExist(data, key, value, unit):
     for item in data:
         if(item["Key"] == key and item["Value"] == value):
             return False
@@ -133,7 +133,7 @@ def fillSRData(key, value, unit, parent, currentChild, level, label):
 
             srData["report"]["findingSite"][index -1]["measurements"]
 
-            res = chechIfExist(srData["report"]["findingSite"][index -1]["measurements"], key, value, unit)
+            res = chechIfAlreadyExist(srData["report"]["findingSite"][index -1]["measurements"], key, value, unit)
             if(res):
                 srData["report"]["findingSite"][index -1]["measurements"].append( {
                     "Key": key,
@@ -144,7 +144,9 @@ def fillSRData(key, value, unit, parent, currentChild, level, label):
         if level == 3:
             index = len( srData["report"]["findingSite"])
             index2 = len(srData["report"]["findingSite"][index -1]["measurements"])
-            srData["report"]["findingSite"][index -1]["measurements"][index2-1]["Infos"].append({"Key": key, "Value": value})
+            res = res = chechIfAlreadyExist(srData["report"]["findingSite"][index -1]["measurements"][index2-1]["Infos"], key, value, unit)
+            if(res):
+                srData["report"]["findingSite"][index -1]["measurements"][index2-1]["Infos"].append({"Key": key, "Value": value})
 
 
     if parent == "patient":
@@ -207,6 +209,10 @@ def extractReport(dataSet, obj):
         print("Number of elements " + str(numberOfElements[0]))
         
         patientDir = obj["folderForPatients"] + "/" + EX.toStr(dataSet.get(pydicom.tag.Tag(0x0010, 0x0020)).value)
+
+        # for item  in srData["report"]["findingSite"]:
+        #     mes = list(dict.fromkeys(item["measurements"]))
+
 
         with open(patientDir + "/report.json", 'w') as fp:
             json.dump(srData, fp)
