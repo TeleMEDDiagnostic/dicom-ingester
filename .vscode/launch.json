@@ -9,7 +9,7 @@
             "type": "python",
             "request": "launch",
             "program": "${file}",
-            "args": ["D:\\TeleMED Projects\\dicom-ingester\\ingester\\parsers\\Data\\DICOM00S\\SR_0001"],
+            "args": ["D:\\TeleMED Projects\\dicom-ingester\\ingester\\parsers\\Data\\DICOM00S"],
             "console": "integratedTerminal"
         }
     ]

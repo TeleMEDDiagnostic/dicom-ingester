@@ -289,12 +289,15 @@ def initiateIngestion(dicomPath):
     xmlFile = 0
     patientID = 0
     historicalDataSets = []
+    iuid = ""
+
 
     if os.path.isfile(dicomPath):
         dataSet = isValidDICOMfile(dicomPath)
 
         if dataSet is not None:
             xmlFile = addPatientAndTestToXML(dataSet)
+            iuid = EX.toStr(dataSet.get(pydicom.tag.Tag(0x0020, 0x000d)).value)
             parser(dataSet, obj, xmlFile)
             patientID = EX.toStr(dataSet.get(pydicom.tag.Tag(0x0010, 0x0020)).value)
 
@@ -303,6 +306,7 @@ def initiateIngestion(dicomPath):
 
         ds = pydicom.dcmread(listOfPaths[0])
         xmlFile = addPatientAndTestToXML(ds)
+        iuid = EX.toStr(ds.get(pydicom.tag.Tag(0x0020, 0x000d)).value)
         patientID = EX.toStr(ds.get(pydicom.tag.Tag(0x0010, 0x0020)).value)
 
         FILES_PER_CHUNK = 5
@@ -322,15 +326,22 @@ def initiateIngestion(dicomPath):
       print("There was an error processing the provided folder")
       exit(1)
     
-    if patientID is not 0:
+    if patientID != 0:
       processDataSets(historicalDataSets, obj, xmlFile)        
             
       tree = ET.ElementTree(xmlFile)
       if not os.path.exists(obj['folderForXML']):
           os.makedirs(obj['folderForXML'])
 
+     
+
+      testFolder = obj['folderForXML'] + "/" + patientID + "/" + iuid 
+
+      if not os.path.exists(testFolder):
+        os.makedirs(testFolder)
+
       uuidForPatient = str(uuid.uuid4())
-      tree.write(obj['folderForXML'] + "/" + patientID + "/" + uuidForPatient + ".xml", xml_declaration = True, encoding = 'utf-8')
+      tree.write(testFolder + "/" + uuidForPatient + ".xml", xml_declaration = True, encoding = 'utf-8')
 
 
 if __name__ == "__main__":

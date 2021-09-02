@@ -4,6 +4,7 @@
 import sys
 import pydicom
 import json
+import os
 import xml.etree.ElementTree as ET
 
 import parsers.xmlTools as EX
@@ -213,8 +214,15 @@ def extractReport(dataSet, obj):
         # for item  in srData["report"]["findingSite"]:
         #     mes = list(dict.fromkeys(item["measurements"]))
 
+        iuid = EX.toStr(dataSet.get(pydicom.tag.Tag(0x0020, 0x000d)).value)
 
-        with open(patientDir + "/report.json", 'w') as fp:
+        testFolder =  patientDir + "/" + iuid
+
+        if not os.path.exists(testFolder):
+            os.makedirs(testFolder)
+
+
+        with open(testFolder + "/report.json", 'w') as fp:
             json.dump(srData, fp)
             fp.close()
         

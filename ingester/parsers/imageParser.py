@@ -214,6 +214,8 @@ def imageToPng(dataSet, obj):
     if dicomData["Image"]["numberOfFrames"] is None:
         print("Single-frame")
         start = time.time()
+
+       
         cv2.imwrite(
                 patientDir + "/image.png", cv2.cvtColor(dataSet.pixel_array, cv2.COLOR_RGB2BGR), [cv2.IMWRITE_PNG_COMPRESSION, 5])
         print(time.time() - start)
