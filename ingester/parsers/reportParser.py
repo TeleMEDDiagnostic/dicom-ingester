@@ -5,6 +5,7 @@ import sys
 import pydicom
 import json
 import os
+import copy
 import xml.etree.ElementTree as ET
 
 import parsers.xmlTools as EX
@@ -88,14 +89,14 @@ def processChild(dataSet, level, parent, elements, child):
 
 
         if val is not None:
-            print(value)
+            #print(value)
             if key == "Finding Site"  and level != 3:
                 parent = key
                 child = val
                 srData["report"]["findingSite"].append(createFindingSite(child))
 
         if val is not None:
-            print(value)
+            #print(value)
             if key == "Label"  and level == 2:
                 parent = key
                 label = val
@@ -109,14 +110,15 @@ def processChild(dataSet, level, parent, elements, child):
         contentSequence = i.get(pydicom.tag.Tag(0x0040, 0xa730))
         #print("\n" + spaces + "Child " + str(counter) + ", level " + str(level))
         if contentSequence is not None:
-            print(spaces + "Entering level ------------" + str(level + 1))            
+            #print(spaces + "Entering level ------------" + str(level + 1))            
             processChild(contentSequence.value, level + 1, parent, elements, child)
-            print(spaces + "Exiting level ------------" + str(level + 1))            
+            #print(spaces + "Exiting level ------------" + str(level + 1))            
         counter += 1
         elements[0] += 1
 
 def chechIfAlreadyExist(data, key, value, unit):
     for item in data:
+       
         if(item["Key"] == key and item["Value"] == value):
             return False
     return True
@@ -134,20 +136,24 @@ def fillSRData(key, value, unit, parent, currentChild, level, label):
 
             srData["report"]["findingSite"][index -1]["measurements"]
 
+            
             res = chechIfAlreadyExist(srData["report"]["findingSite"][index -1]["measurements"], key, value, unit)
             if(res):
-                srData["report"]["findingSite"][index -1]["measurements"].append( {
-                    "Key": key,
-                    "Value": value,
-                    "Unit": unit,
-                    "Infos": []
-                })
+                if(unit != ""):
+                    srData["report"]["findingSite"][index -1]["measurements"].append( {
+                        "Key": key,
+                        "Value": value,
+                        "Unit": unit,
+                        "Infos": []
+                    })
+                #print("-->" +key + ": " + value + " " + unit)
         if level == 3:
             index = len( srData["report"]["findingSite"])
             index2 = len(srData["report"]["findingSite"][index -1]["measurements"])
             res = res = chechIfAlreadyExist(srData["report"]["findingSite"][index -1]["measurements"][index2-1]["Infos"], key, value, unit)
             if(res):
                 srData["report"]["findingSite"][index -1]["measurements"][index2-1]["Infos"].append({"Key": key, "Value": value})
+                
 
 
     if parent == "patient":
@@ -171,6 +177,54 @@ def createFindingSite(Name):
     return { "Name": Name,
     "measurements": []
     }
+
+def generateMeasurmentAvg(data):
+    avgs = copy.deepcopy(data)
+    index = 0;
+    for item in data["report"]["findingSite"]:
+        msAvgs = {
+            "Name": item["Name"],
+            "Avgs": []
+        }
+
+        print(item["Name"])
+        prevKey = ""
+        prevUnit = ""
+
+        avgValue = 0
+        keyCount = 0
+        for ms in item["measurements"]:
+            if(prevKey != ms["Key"]):
+                if(keyCount > 0):
+                    avgs["report"]["findingSite"][index]["measurements"].append( {
+                        "Key": prevKey + " Avg",
+                        "Value": avgValue/keyCount,
+                        "Unit": prevUnit,
+                        "Infos": [{"Key": "Calculated", "Value": "Average"}]
+                    })
+                    keyCount = 0
+                    avgValue = 0
+                prevKey = ms["Key"]
+                prevUnit =  ms["Unit"]
+                
+            if(prevKey == ms["Key"]):
+                keyCount += 1;
+                avgValue += float(ms["Value"])
+
+           
+            
+            print("       " + ms["Key"])
+        #this should cover last index
+        if(keyCount > 0):
+                    avgs["report"]["findingSite"][index]["measurements"].append( {
+                        "Key": prevKey + " Avg",
+                        "Value": avgValue/keyCount,
+                        "Unit": prevUnit,
+                        "Infos": [{"Key": "Calculated", "Value": "Average"}]
+                    })
+        index += 1;
+
+    return avgs;
 
 def extractReport(dataSet, obj):
     print("I'm extracting the report")
@@ -221,9 +275,9 @@ def extractReport(dataSet, obj):
         if not os.path.exists(testFolder):
             os.makedirs(testFolder)
 
-
+        srDataAvgs = generateMeasurmentAvg(srData);
         with open(testFolder + "/report.json", 'w') as fp:
-            json.dump(srData, fp)
+            json.dump(srDataAvgs, fp)
             fp.close()
         
         #print(dataSet.get(pydicom.tag.Tag(0x0040, 0xa504)).value)
