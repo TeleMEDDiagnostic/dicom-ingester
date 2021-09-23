@@ -341,6 +341,8 @@ def initiateIngestion(dicomPath):
         os.makedirs(testFolder)
 
       uuidForPatient = str(uuid.uuid4())
+
+      uuidForPatient = iuid.replace('.','_');
       tree.write(testFolder + "/" + uuidForPatient + ".xml", xml_declaration = True, encoding = 'utf-8')
 
 
