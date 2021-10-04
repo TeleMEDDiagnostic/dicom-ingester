@@ -2,6 +2,8 @@
     // Use IntelliSense to learn about possible attributes.
     // Hover to view descriptions of existing attributes.
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    // C:\\DICOM_Data\\DICOM009Stress
+    // "D:\\TeleMEDProjects\\dicom-ingester\\ingester\\parsers\\Data\\DICOM00STBW"
     "version": "0.2.0",
     "configurations": [
         {
@@ -9,7 +11,7 @@
             "type": "python",
             "request": "launch",
             "program": "${file}",
-            "args": ["D:\\TeleMEDProjects\\dicom-ingester\\ingester\\parsers\\Data\\DICOM00S"],
+            "args": ["D:\\TeleMEDProjects\\dicom-ingester\\ingester\\parsers\\Data\\DICOM00P"],
             "console": "integratedTerminal"
         }
     ]

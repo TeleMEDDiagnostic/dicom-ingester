@@ -150,10 +150,11 @@ def fillSRData(key, value, unit, parent, currentChild, level, label):
         if level == 3:
             index = len( srData["report"]["findingSite"])
             index2 = len(srData["report"]["findingSite"][index -1]["measurements"])
-            res = res = chechIfAlreadyExist(srData["report"]["findingSite"][index -1]["measurements"][index2-1]["Infos"], key, value, unit)
-            if(res):
-                srData["report"]["findingSite"][index -1]["measurements"][index2-1]["Infos"].append({"Key": key, "Value": value})
-                
+            if(index > 0 and index2 > 0):
+                res = res = chechIfAlreadyExist(srData["report"]["findingSite"][index -1]["measurements"][index2-1]["Infos"], key, value, unit)
+                if(res):
+                    srData["report"]["findingSite"][index -1]["measurements"][index2-1]["Infos"].append({"Key": key, "Value": value})
+                    
 
 
     if parent == "patient":
