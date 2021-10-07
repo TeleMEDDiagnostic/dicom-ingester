@@ -9,6 +9,7 @@ import cv2
 import numpngw
 import os
 import skvideo.io
+import random
 
 def regionFlags(element, reference):
   flags = []
@@ -133,7 +134,10 @@ def generateInfoFile(dicomInfo, folder, scaleFactor = 0):
               if isinstance(val, list):
                 obj[baseKey][key] = val
               else:
-                obj[baseKey][key] = EX.toStr(val.value)
+                if isinstance(val, int) | isinstance(val, str):
+                    obj[baseKey][key] = val
+                else:
+                    obj[baseKey][key] = EX.toStr(val.value)
 
     if scaleFactor != 0:
         obj["Image"]["scaledRows"] =  str(int(dicomInfo["Image"]["rows"].value * scaleFactor))
@@ -155,10 +159,33 @@ def generateInfoFile(dicomInfo, folder, scaleFactor = 0):
 def scaleImage(image, ratio):
     return cv2.resize(image, dsize=(int(ratio * len(image[0])), int(ratio * len(image))), interpolation = cv2.INTER_LINEAR)
 
+def getIndex(comment):
+  xy = 0
+  if comment is not None:
+      splited = EX.toStr(comment.value).split(':')
+      for item in splited:
+        print(item)
+        if 'RowNumber' in item:
+          rowSplited = item.split('=')
+          xy +=  int(rowSplited[1])
+        if 'ColNumber' in item:
+          colSplited = item.split('=')
+          xy += 10 * int(colSplited[1])
+      return xy
+  else:
+      return random.randint(800, 999)
+
+def returnElementNotNull(elem):
+  if elem is not None:
+    return elem
+  return EX.toStr('-')
+
+
+
+
 
 def imageToPng(dataSet, obj):
-    print("Processing Ultrasound Image")
-
+    print("Processing Ultrasound Image")   
     dicomData = { "Patient" :
                         {"PatientName" : dataSet.get(pydicom.tag.Tag(0x0010, 0x0010)),                 
                         "PatientID" : dataSet.get(pydicom.tag.Tag(0x0010, 0x0020)), 
@@ -195,7 +222,13 @@ def imageToPng(dataSet, obj):
                         "imageType" : dataSet.get(pydicom.tag.Tag(0x0008, 0x0008)),
                         "recommendedDisplayFrameRate" : dataSet.get(pydicom.tag.Tag(0x0008, 0x2144)),    
                         "photometricInterpretation" : dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)),
-                        "pixelRepresentation" : dataSet.get(pydicom.tag.Tag(0x0028, 0x0103))
+                        "pixelRepresentation" : dataSet.get(pydicom.tag.Tag(0x0028, 0x0103)),
+                        "stageName" : returnElementNotNull(dataSet.get(pydicom.tag.Tag(0x0008, 0x2120))),
+                        "viewName" : returnElementNotNull(dataSet.get(pydicom.tag.Tag(0x0008, 0x2127))),
+                        "index" : getIndex(dataSet.get(pydicom.tag.Tag(0x0020, 0x4000))),
+                        "comment" : returnElementNotNull(dataSet.get(pydicom.tag.Tag(0x0020, 0x4000))),
+                        "Date" : dataSet.get(pydicom.tag.Tag(0x0008, 0x0023)),
+                        "Time" : dataSet.get(pydicom.tag.Tag(0x0008,0x0033))
                         }
                 }
 
@@ -290,7 +323,7 @@ def imageToPng(dataSet, obj):
         cv2.imwrite(
                 patientDir + "/thumbnails.png", cv2.UMat(
                     cv2.cvtColor(createTiledImage(newArray, [int(dicomData["Image"]["rows"].value  * obj['scaleFactor']), int(dicomData["Image"]["columns"].value * obj['scaleFactor'])], dicomData["Image"]["numberOfFrames"].value),colorPlate)))
-        print(time.time() - start)
+        print(time.time() - start)        
         print("Done processing image")
 
 
