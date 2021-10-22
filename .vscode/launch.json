@@ -11,7 +11,7 @@
             "type": "python",
             "request": "launch",
             "program": "${file}",
-            "args": ["C:\\DICOM_Data\\DICOM009StressSelected"],
+            "args": ["D:\\TeleMEDProjects\\dicom-ingester\\ingester\\parsers\\Data\\DICOM00ST"],
             "console": "integratedTerminal"
         }
     ]

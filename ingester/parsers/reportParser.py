@@ -123,6 +123,13 @@ def chechIfAlreadyExist(data, key, value, unit):
             return False
     return True
 
+def is_number(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False
+
 
 def fillSRData(key, value, unit, parent, currentChild, level, label):
     obj = {}
@@ -135,14 +142,18 @@ def fillSRData(key, value, unit, parent, currentChild, level, label):
             index2 = len(srData["report"]["findingSite"][index -1]["measurements"])
 
             srData["report"]["findingSite"][index -1]["measurements"]
-
+            valueNumber = ''
+            if(is_number(value)):
+                valueNumber = '{:.2f}'.format(float(value))
+            else:
+                valueNumber = value    
             
-            res = chechIfAlreadyExist(srData["report"]["findingSite"][index -1]["measurements"], key, value, unit)
+            res = chechIfAlreadyExist(srData["report"]["findingSite"][index -1]["measurements"], key, valueNumber, unit)
             if(res):
                 if(unit != ""):
                     srData["report"]["findingSite"][index -1]["measurements"].append( {
                         "Key": key,
-                        "Value": value,
+                        "Value": valueNumber,
                         "Unit": unit,
                         "Infos": []
                     })
@@ -151,9 +162,14 @@ def fillSRData(key, value, unit, parent, currentChild, level, label):
             index = len( srData["report"]["findingSite"])
             index2 = len(srData["report"]["findingSite"][index -1]["measurements"])
             if(index > 0 and index2 > 0):
-                res = res = chechIfAlreadyExist(srData["report"]["findingSite"][index -1]["measurements"][index2-1]["Infos"], key, value, unit)
+                valueNumber = ''
+                if(is_number(value)):
+                    valueNumber = '{:.2f}'.format(float(value))
+                else:
+                    valueNumber = value           
+                res = res = chechIfAlreadyExist(srData["report"]["findingSite"][index -1]["measurements"][index2-1]["Infos"], key, valueNumber, unit)
                 if(res):
-                    srData["report"]["findingSite"][index -1]["measurements"][index2-1]["Infos"].append({"Key": key, "Value": value})
+                    srData["report"]["findingSite"][index -1]["measurements"][index2-1]["Infos"].append({"Key": key, "Value": valueNumber})
                     
 
 
@@ -168,7 +184,7 @@ def fillSRData(key, value, unit, parent, currentChild, level, label):
             srData["report"]["userDefined"].append({"Key": key, "Value": value})
         if(label == ''):
             #obj[key + value] = value
-            srData["report"]["userDefined"].append({"Key": key, "Value": value})
+            srData["report"]["userDefined"].append({"Key": key, "Value": '{:.2f}'.format(float(value))})
         
 
 
@@ -276,9 +292,9 @@ def extractReport(dataSet, obj):
         if not os.path.exists(testFolder):
             os.makedirs(testFolder)
 
-        srDataAvgs = generateMeasurmentAvg(srData);
+        # srDataAvgs = generateMeasurmentAvg(srData);
         with open(testFolder + "/report.json", 'w') as fp:
-            json.dump(srDataAvgs, fp)
+            json.dump(srData, fp)
             fp.close()
         
         #print(dataSet.get(pydicom.tag.Tag(0x0040, 0xa504)).value)
