@@ -12,6 +12,7 @@ import xml.etree.ElementTree as ET
 import uuid
 import time
 import subprocess
+import shutil as SHT
 
 
 import parsers.xmlTools as EX
@@ -226,9 +227,25 @@ def getPaths(path):
       paths = [os.path.join(path, *instance.ReferencedFileID) for instance in instances]
 
     else:
-        for root, dirs, files in os.walk(path):
+        for root, dirs, files in os.walk(path):            
+            ds = pydicom.dcmread(os.path.join(root, files[0]))
+            patientID01 = EX.toStr(ds.get(pydicom.tag.Tag(0x0010, 0x0020)).value)
             for file in files:
-                paths.append(os.path.join(root, file))
+                ds2 = pydicom.dcmread(os.path.join(root, file))
+                patientIDCurrent = EX.toStr(ds2.get(pydicom.tag.Tag(0x0010, 0x0020)).value)
+                if(patientID01 == patientIDCurrent):
+                    paths.append(os.path.join(root, file))
+                   
+
+    return paths
+
+def getListOfFiles(path):
+    paths = []
+    
+    for root, dirs, files in os.walk(path):            
+        for file in files:
+            paths.append(os.path.join(root, file))
+                    
 
     return paths
 
@@ -266,6 +283,12 @@ def initiateIngestion(dicomPath):
                 print("Path " + obj["folderForPatients"] + " doesn't exist or is not accesible")
                 obj["folderForPatients"] = currentPath + "/DataIngestor"
                 print("Using default path: " + obj["folderForPatients"] + " for images and reports")
+            if not os.path.exists(obj["folderForProcessed"]):
+                print("Path " + obj["folderForProcessed"] + " doesn't exist or is not accesible")
+                obj["folderForProcessed"] = currentPath + "/Processed"
+                print("Using default path: " + obj["folderForProcessed"] + " for images and reports")
+
+                
 
             if not (0 < obj["scaleFactor"] < 1):
                 print("The scale factor " + str(obj["scaleFactor"]) + " must be a value between 0 and 1. Resetting it to default: 0.5")
@@ -277,6 +300,7 @@ def initiateIngestion(dicomPath):
         obj = {
             "folderForXML": currentPath + "/DataIngestor",
             "folderForPatients": currentPath + "/DataIngestor",
+            "folderForProcessed": currentPath + "/Processed",
             "server": {
                 "url": "http://localhost",
                 "port": "8042",
@@ -319,16 +343,19 @@ def initiateIngestion(dicomPath):
         if FILES_PER_CHUNK > len(listOfPaths):
             for f in listOfPaths:
               parser(isValidDICOMfile(f), obj, xmlFile)
+              SHT.move(f, obj['folderForProcessed'])
 
         else:
             chunks = numpy.array_split(listOfPaths, len(listOfPaths) / FILES_PER_CHUNK)
 
             for chunk in chunks:
                 processDataSets(chunk, obj, xmlFile)
-
+                for f in chunk:
+                    SHT.move(f, obj['folderForProcessed'])
 
     else:
-      print("There was an error processing the provided folder")
+      print("There was an error processing the provided folder\n")
+      print("Folder provided may be empty")
       exit(1)
     
     if patientID != 0:
@@ -350,6 +377,11 @@ def initiateIngestion(dicomPath):
       uuidForPatient = iuid.replace('.','_');
       tree.write(testFolder + "/" + uuidForPatient + ".xml", xml_declaration = True, encoding = 'utf-8')
 
+    listOfPaths = getListOfFiles(dicomPath)
+    if(len(listOfPaths) > 0):
+        initiateIngestion(dicomPath)
+    
+
 
 if __name__ == "__main__":
     import sys
@@ -357,4 +389,5 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         sys.exit("Format: python3 input.dcm")
     else:
-        initiateIngestion(sys.argv[1])
+        if(len(getListOfFiles(sys.argv[1])) > 0):
+            initiateIngestion(sys.argv[1])
