@@ -286,7 +286,12 @@ def initiateIngestion(dicomPath):
             if not os.path.exists(obj["folderForProcessed"]):
                 print("Path " + obj["folderForProcessed"] + " doesn't exist or is not accesible")
                 obj["folderForProcessed"] = currentPath + "/Processed"
-                print("Using default path: " + obj["folderForProcessed"] + " for images and reports")
+                print("Using default path: " + obj["folderForProcessed"] + " for proccessed DICOM files")
+
+            if not os.path.exists(obj["folderForImporter"]):
+                print("Path " + obj["folderForImporter"] + " doesn't exist or is not accesible")
+                obj["folderForImporter"] = currentPath + "/Processed"
+                print("Using default path: " + obj["folderForImporter"] + " for report files to be use by the Importer")
 
                 
 
@@ -301,6 +306,7 @@ def initiateIngestion(dicomPath):
             "folderForXML": currentPath + "/DataIngestor",
             "folderForPatients": currentPath + "/DataIngestor",
             "folderForProcessed": currentPath + "/Processed",
+             "folderForImporter": currentPath + "/Importer",
             "server": {
                 "url": "http://localhost",
                 "port": "8042",

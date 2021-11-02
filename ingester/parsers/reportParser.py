@@ -297,6 +297,15 @@ def extractReport(dataSet, obj):
             json.dump(srData, fp)
             fp.close()
         
+        reportFolder = obj["folderForImporter"] + "/" + EX.toStr(dataSet.get(pydicom.tag.Tag(0x0010, 0x0020)).value) + "/" + iuid
+        if not os.path.exists(reportFolder):
+            os.makedirs(reportFolder)
+        
+        # create the report file to trigger importer action to import a new test
+        with open(reportFolder + "/report.json", 'w') as fp:
+            json.dump(srData, fp)
+            fp.close()
+        
         #print(dataSet.get(pydicom.tag.Tag(0x0040, 0xa504)).value)
     else:
         print("This is not an SR dicom file")
