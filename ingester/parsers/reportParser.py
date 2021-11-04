@@ -148,11 +148,11 @@ def fillSRData(key, value, unit, parent, currentChild, level, label):
             else:
                 valueNumber = value    
             
-            res = chechIfAlreadyExist(srData["report"]["findingSite"][index -1]["measurements"], key, valueNumber, unit)
+            res = chechIfAlreadyExist(srData["report"]["findingSite"][index -1]["measurements"], key.replace("'", ""), valueNumber, unit)
             if(res):
                 if(unit != ""):
                     srData["report"]["findingSite"][index -1]["measurements"].append( {
-                        "Key": key,
+                        "Key": key.replace("'", ""),
                         "Value": valueNumber,
                         "Unit": unit,
                         "Infos": []
@@ -167,9 +167,9 @@ def fillSRData(key, value, unit, parent, currentChild, level, label):
                     valueNumber = '{:.2f}'.format(float(value))
                 else:
                     valueNumber = value           
-                res = res = chechIfAlreadyExist(srData["report"]["findingSite"][index -1]["measurements"][index2-1]["Infos"], key, valueNumber, unit)
+                res = res = chechIfAlreadyExist(srData["report"]["findingSite"][index -1]["measurements"][index2-1]["Infos"], key.replace("'", ""), valueNumber, unit)
                 if(res):
-                    srData["report"]["findingSite"][index -1]["measurements"][index2-1]["Infos"].append({"Key": key, "Value": valueNumber})
+                    srData["report"]["findingSite"][index -1]["measurements"][index2-1]["Infos"].append({"Key": key.replace("'", ""), "Value": valueNumber})
                     
 
 
@@ -181,10 +181,10 @@ def fillSRData(key, value, unit, parent, currentChild, level, label):
     if parent == "Label":        
         if(key == 'Label'):
             #obj[key + value] = value
-            srData["report"]["userDefined"].append({"Key": key, "Value": value})
+            srData["report"]["userDefined"].append({"Key": key.replace("'", ""), "Value": value})
         if(label == ''):
             #obj[key + value] = value
-            srData["report"]["userDefined"].append({"Key": key, "Value": '{:.2f}'.format(float(value))})
+            srData["report"]["userDefined"].append({"Key": key.replace("'", ""), "Value": '{:.2f}'.format(float(value))})
         
 
 

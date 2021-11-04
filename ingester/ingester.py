@@ -346,10 +346,15 @@ def initiateIngestion(dicomPath):
 
         FILES_PER_CHUNK = 5
 
+        #move folder
+        if not os.path.exists(obj['folderForProcessed'] + "/" + patientID + "/" + iuid ):
+          os.makedirs(obj['folderForProcessed'] + "/" + patientID + "/" + iuid )
+
+
         if FILES_PER_CHUNK > len(listOfPaths):
             for f in listOfPaths:
               parser(isValidDICOMfile(f), obj, xmlFile)
-              SHT.move(f, obj['folderForProcessed'])
+              SHT.move(f, obj['folderForProcessed']+ "/" + patientID + "/" + iuid )
 
         else:
             chunks = numpy.array_split(listOfPaths, len(listOfPaths) / FILES_PER_CHUNK)
@@ -357,7 +362,7 @@ def initiateIngestion(dicomPath):
             for chunk in chunks:
                 processDataSets(chunk, obj, xmlFile)
                 for f in chunk:
-                    SHT.move(f, obj['folderForProcessed'])
+                    SHT.move(f, obj['folderForProcessed'] + "/" + patientID + "/" + iuid )
 
     else:
       print("There was an error processing the provided folder\n")
@@ -384,6 +389,7 @@ def initiateIngestion(dicomPath):
       tree.write(testFolder + "/" + uuidForPatient + ".xml", xml_declaration = True, encoding = 'utf-8')
 
     listOfPaths = getListOfFiles(dicomPath)
+
     if(len(listOfPaths) > 0):
         initiateIngestion(dicomPath)
     
