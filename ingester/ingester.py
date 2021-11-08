@@ -354,6 +354,7 @@ def initiateIngestion(dicomPath):
         if FILES_PER_CHUNK > len(listOfPaths):
             for f in listOfPaths:
               parser(isValidDICOMfile(f), obj, xmlFile)
+              print(f)
               SHT.move(f, obj['folderForProcessed']+ "/" + patientID + "/" + iuid )
 
         else:
@@ -362,7 +363,12 @@ def initiateIngestion(dicomPath):
             for chunk in chunks:
                 processDataSets(chunk, obj, xmlFile)
                 for f in chunk:
-                    SHT.move(f, obj['folderForProcessed'] + "/" + patientID + "/" + iuid )
+                    head, tail = os.path.split(f)
+                    if(os.path.isfile(obj['folderForProcessed'] + "/" + patientID + "/" + iuid + "/" + tail)):
+                        os.remove(obj['folderForProcessed'] + "/" + patientID + "/" + iuid + "/" + tail)
+                        SHT.move(f, obj['folderForProcessed'] + "/" + patientID + "/" + iuid )
+                    else:
+                        SHT.move(f, obj['folderForProcessed'] + "/" + patientID + "/" + iuid )
 
     else:
       print("There was an error processing the provided folder\n")

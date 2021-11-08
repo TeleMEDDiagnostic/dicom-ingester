@@ -11,7 +11,7 @@
             "type": "python",
             "request": "launch",
             "program": "${file}",
-            "args": ["D:\\TeleMEDProjects\\dicom-ingester\\ingester\\parsers\\Data\\DICOM002"],
+            "args": ["D:\\TeleMEDProjects\\dicom-ingester\\ingester\\parsers\\Data\\DICOMMIX"],
             "console": "integratedTerminal"
         }
     ]

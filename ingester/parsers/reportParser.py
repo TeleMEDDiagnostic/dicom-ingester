@@ -306,6 +306,14 @@ def extractReport(dataSet, obj):
             json.dump(srData, fp)
             fp.close()
         
+        #clearing data after one file is saved
+        srData["report"]["patient"] = {}
+        srData["report"]["findingSite"] = []
+        srData["report"]["userDefined"] = []
+        
+
+        
+        
         #print(dataSet.get(pydicom.tag.Tag(0x0040, 0xa504)).value)
     else:
         print("This is not an SR dicom file")
