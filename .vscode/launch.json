@@ -4,6 +4,7 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     // C:\\DICOM_Data\\DICOM009Stress
     // "D:\\TeleMEDProjects\\dicom-ingester\\ingester\\parsers\\Data\\DICOM00STBW"
+    //D:\TeleMEDProjects\dicom-ingester\ingester\parsers\Data\NONAME
     "version": "0.2.0",
     "configurations": [
         {
@@ -11,7 +12,7 @@
             "type": "python",
             "request": "launch",
             "program": "${file}",
-            "args": ["D:\\TeleMEDProjects\\dicom-ingester\\ingester\\parsers\\Data\\DICOMMIX"],
+            "args": ["C:\\Users\\Dellal\\Downloads\\echos\\echo1"],
             "console": "integratedTerminal"
         }
     ]

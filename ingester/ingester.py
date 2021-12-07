@@ -353,9 +353,13 @@ def initiateIngestion(dicomPath):
 
         if FILES_PER_CHUNK > len(listOfPaths):
             for f in listOfPaths:
-              parser(isValidDICOMfile(f), obj, xmlFile)
-              print(f)
-              SHT.move(f, obj['folderForProcessed']+ "/" + patientID + "/" + iuid )
+                parser(isValidDICOMfile(f), obj, xmlFile)
+                head, tail = os.path.split(f)
+                if(os.path.isfile(obj['folderForProcessed'] + "/" + patientID + "/" + iuid + "/" + tail)):
+                    os.remove(obj['folderForProcessed'] + "/" + patientID + "/" + iuid + "/" + tail)
+                    SHT.move(f, obj['folderForProcessed'] + "/" + patientID + "/" + iuid )
+                else:
+                    SHT.move(f, obj['folderForProcessed'] + "/" + patientID + "/" + iuid )
 
         else:
             chunks = numpy.array_split(listOfPaths, len(listOfPaths) / FILES_PER_CHUNK)

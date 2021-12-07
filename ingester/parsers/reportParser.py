@@ -16,6 +16,8 @@ srData = { "name" : "Adult Echocardiography Report",
         "userDefined" : []
         }
     }
+
+lastUserDefinedKey = ''
     
 
 
@@ -181,10 +183,16 @@ def fillSRData(key, value, unit, parent, currentChild, level, label):
     if parent == "Label":        
         if(key == 'Label'):
             #obj[key + value] = value
-            srData["report"]["userDefined"].append({"Key": key.replace("'", ""), "Value": value})
+            #srData["report"]["userDefined"].append({"Key": key.replace("'", ""), "Value": value})
+            global lastUserDefinedKey
+            lastUserDefinedKey = value
         if(label == ''):
             #obj[key + value] = value
-            srData["report"]["userDefined"].append({"Key": key.replace("'", ""), "Value": '{:.2f}'.format(float(value))})
+            if(unit == '' ):
+                unit = 'no units'
+           
+            if(is_number(value) ):
+                srData["report"]["userDefined"].append({"Key": lastUserDefinedKey.replace("'", ""), "Value": '{:.2f}'.format(float(value)), "Unit": unit})
         
 
 
@@ -269,7 +277,9 @@ def extractReport(dataSet, obj):
 
         conceptNameCodeDataSet = dataSet.get(pydicom.tag.Tag(0x0040, 0xa043)).value[0]
 
-        srData["name"] = EX.toStr(EX.toStr(conceptNameCodeDataSet.get(pydicom.tag.Tag(0x0008, 0x0104)).value))
+        #srData["name"] = EX.toStr(EX.toStr(conceptNameCodeDataSet.get(pydicom.tag.Tag(0x0008, 0x0104)).value))
+        print(EX.toStr(dataSet.get(pydicom.tag.Tag(0x0008, 0x1030)).value))
+        srData["name"] = EX.toStr(dataSet.get(pydicom.tag.Tag(0x0008, 0x1030)).value)
 
         print("Length of content sequence " + str(len(dataSet.get(pydicom.tag.Tag(0x0040, 0xa730)).value)))
         print("Type of content sequence " + str(type(dataSet.get(pydicom.tag.Tag(0x0040, 0xa730)).value[0])))
