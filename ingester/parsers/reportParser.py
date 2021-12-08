@@ -278,8 +278,13 @@ def extractReport(dataSet, obj):
         conceptNameCodeDataSet = dataSet.get(pydicom.tag.Tag(0x0040, 0xa043)).value[0]
 
         #srData["name"] = EX.toStr(EX.toStr(conceptNameCodeDataSet.get(pydicom.tag.Tag(0x0008, 0x0104)).value))
-        print(EX.toStr(dataSet.get(pydicom.tag.Tag(0x0008, 0x1030)).value))
-        srData["name"] = EX.toStr(dataSet.get(pydicom.tag.Tag(0x0008, 0x1030)).value)
+       
+        if(dataSet.get(pydicom.tag.Tag(0x0008, 0x1030)) is not None):
+            print(EX.toStr(dataSet.get(pydicom.tag.Tag(0x0008, 0x1030)).value))
+            srData["name"] = EX.toStr(dataSet.get(pydicom.tag.Tag(0x0008, 0x1030)).value)
+        else:
+            srData["name"] = "Adult Echo"
+
 
         print("Length of content sequence " + str(len(dataSet.get(pydicom.tag.Tag(0x0040, 0xa730)).value)))
         print("Type of content sequence " + str(type(dataSet.get(pydicom.tag.Tag(0x0040, 0xa730)).value[0])))
