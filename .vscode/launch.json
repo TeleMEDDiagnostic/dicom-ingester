@@ -12,7 +12,7 @@
             "type": "python",
             "request": "launch",
             "program": "${file}",
-            "args": ["C:\\Users\\Dellal\\Downloads\\echos\\echo4"],
+            "args": ["C:\\Users\\Dellal\\Downloads\\echos\\echo1"],
             "console": "integratedTerminal"
         }
     ]

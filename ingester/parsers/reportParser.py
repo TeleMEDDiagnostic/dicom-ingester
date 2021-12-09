@@ -16,9 +16,11 @@ srData = { "name" : "Adult Echocardiography Report",
         "userDefined" : []
         }
     }
+filterByInfo = []
 
 lastUserDefinedKey = ''
-    
+lastFound = {}
+currentElement=""
 
 
 
@@ -40,6 +42,7 @@ def processChild(dataSet, level, parent, elements, child):
         val = ""
         key= ""
         unit=""
+        
        
         if i.get(pydicom.tag.Tag(0x0040, 0xa040)).value == "TEXT":
             conceptNameCodeDataSet = i.get(pydicom.tag.Tag(0x0040, 0xa043)).value[0]
@@ -95,6 +98,8 @@ def processChild(dataSet, level, parent, elements, child):
             if key == "Finding Site"  and level != 3:
                 parent = key
                 child = val
+                global currentElement
+                currentElement = val
                 srData["report"]["findingSite"].append(createFindingSite(child))
 
         if val is not None:
@@ -146,10 +151,24 @@ def fillSRData(key, value, unit, parent, currentChild, level, label):
             srData["report"]["findingSite"][index -1]["measurements"]
             valueNumber = ''
             if(is_number(value)):
+                if(unit == 'mm'):
+                    value = float(value) / 10
+                    unit = 'cm'
+                if(unit == 'mm2'):
+                    value = float(value) / 100
+                    unit = 'cm2'
+                if(unit == 'mm3'):
+                    value = float(value) / 1000
+                    unit = 'cm3'
+                if(unit == 'mm/s'):
+                    value = float(value) / 1000
+                    unit = 'm/s'
                 valueNumber = '{:.2f}'.format(float(value))
             else:
                 valueNumber = value    
             
+            if(currentElement == "Mitral Valve" and key == "Cardiovascular Orifice Area"):
+                lastFound = {"Key": key, "Value": valueNumber, "Unit": unit }
             res = chechIfAlreadyExist(srData["report"]["findingSite"][index -1]["measurements"], key.replace("'", ""), valueNumber, unit)
             if(res):
                 if(unit != ""):
