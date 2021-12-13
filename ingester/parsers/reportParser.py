@@ -16,7 +16,7 @@ srData = { "name" : "Adult Echocardiography Report",
         "userDefined" : []
         }
     }
-filterByInfo = []
+filterByInfo = [{}]
 
 lastUserDefinedKey = ''
 lastFound = {}
@@ -140,6 +140,7 @@ def is_number(s):
 
 def fillSRData(key, value, unit, parent, currentChild, level, label):
     obj = {}
+   
 
 
     if parent == "Finding Site":
@@ -167,8 +168,16 @@ def fillSRData(key, value, unit, parent, currentChild, level, label):
             else:
                 valueNumber = value    
             
+            #key data should come from config and check if any matches 
+            global lastFound;  
             if(currentElement == "Mitral Valve" and key == "Cardiovascular Orifice Area"):
+                             
                 lastFound = {"Key": key, "Value": valueNumber, "Unit": unit }
+            #key data should come from config and check if any matches 
+            if(currentElement == "Aortic Valve" and key == "Cardiovascular Orifice Area"):
+                #global lastFound;               
+                lastFound = {"Key": key, "Value": valueNumber, "Unit": unit }
+
             res = chechIfAlreadyExist(srData["report"]["findingSite"][index -1]["measurements"], key.replace("'", ""), valueNumber, unit)
             if(res):
                 if(unit != ""):
@@ -180,8 +189,20 @@ def fillSRData(key, value, unit, parent, currentChild, level, label):
                     })
                 #print("-->" +key + ": " + value + " " + unit)
         if level == 3:
+
             index = len( srData["report"]["findingSite"])
             index2 = len(srData["report"]["findingSite"][index -1]["measurements"])
+
+            #key data should come from config and check if any matches 
+            # TDO generlize
+            if(currentElement == "Mitral Valve" and key == "Measurement Method"  and value == "Area by Pressure Half-Time"):               
+                srData["report"]["userDefined"].append({"Key": "MVA PHT", "Value": lastFound["Value"], "Unit": lastFound["Unit"]})
+
+            if(currentElement == "Aortic Valve" and key == "Measurement Method"  and value == "Continuity Equation by Velocity Time Integral"):               
+                srData["report"]["userDefined"].append({"Key": "AVA VTI", "Value": lastFound["Value"], "Unit": lastFound["Unit"]})        
+                
+            lastFound  = {}
+
             if(index > 0 and index2 > 0):
                 valueNumber = ''
                 if(is_number(value)):
@@ -298,7 +319,9 @@ def extractReport(dataSet, obj):
 
         #srData["name"] = EX.toStr(EX.toStr(conceptNameCodeDataSet.get(pydicom.tag.Tag(0x0008, 0x0104)).value))
        
-        if(dataSet.get(pydicom.tag.Tag(0x0008, 0x1030)) is not None):
+        temp = dataSet.get(pydicom.tag.Tag(0x0008, 0x1030));
+
+        if((dataSet.get(pydicom.tag.Tag(0x0008, 0x1030)) is not None) and (dataSet.get(pydicom.tag.Tag(0x0008, 0x1030)).value is not '')):
             print(EX.toStr(dataSet.get(pydicom.tag.Tag(0x0008, 0x1030)).value))
             srData["name"] = EX.toStr(dataSet.get(pydicom.tag.Tag(0x0008, 0x1030)).value)
         else:
