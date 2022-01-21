@@ -162,8 +162,8 @@ def fillSRData(key, value, unit, parent, currentChild, level, label):
                     value = float(value) / 1000
                     unit = 'cm3'
                 if(unit == 'mm/s'):
-                    value = float(value) / 1000
-                    unit = 'm/s'
+                    value = float(value) / 10
+                    unit = 'cm/s'
                 valueNumber = '{:.2f}'.format(float(value))
             else:
                 valueNumber = value    
@@ -175,6 +175,10 @@ def fillSRData(key, value, unit, parent, currentChild, level, label):
                 lastFound = {"Key": key, "Value": valueNumber, "Unit": unit }
             #key data should come from config and check if any matches 
             if(currentElement == "Aortic Valve" and key == "Cardiovascular Orifice Area"):
+                #global lastFound;               
+                lastFound = {"Key": key, "Value": valueNumber, "Unit": unit }
+
+            if(currentElement == "Left Ventricle" and key == "Left Ventricular Ejection Fraction"):
                 #global lastFound;               
                 lastFound = {"Key": key, "Value": valueNumber, "Unit": unit }
 
@@ -195,11 +199,14 @@ def fillSRData(key, value, unit, parent, currentChild, level, label):
 
             #key data should come from config and check if any matches 
             # TDO generlize
-            if(currentElement == "Mitral Valve" and key == "Measurement Method"  and value == "Area by Pressure Half-Time"):               
+            if(currentElement == "Mitral Valve" and key == "Measurement Method"  and value == "Area by Pressure Half-Time" and  lastFound != {}):               
                 srData["report"]["userDefined"].append({"Key": "MVA PHT", "Value": lastFound["Value"], "Unit": lastFound["Unit"]})
 
-            if(currentElement == "Aortic Valve" and key == "Measurement Method"  and value == "Continuity Equation by Velocity Time Integral"):               
-                srData["report"]["userDefined"].append({"Key": "AVA VTI", "Value": lastFound["Value"], "Unit": lastFound["Unit"]})        
+            if(currentElement == "Aortic Valve" and key == "Measurement Method"  and value == "Continuity Equation by Velocity Time Integral" and  lastFound != {}):               
+                srData["report"]["userDefined"].append({"Key": "AVA VTI", "Value": lastFound["Value"], "Unit": lastFound["Unit"]}) 
+
+            if(currentElement == "Left Ventricle" and key == "Measurement Method" and value == "Method of Disks, Biplane" and  lastFound != {}):
+                srData["report"]["userDefined"].append({"Key": "EF Biplane", "Value": lastFound["Value"], "Unit": lastFound["Unit"]})       
                 
             lastFound  = {}
 
@@ -232,7 +239,20 @@ def fillSRData(key, value, unit, parent, currentChild, level, label):
                 unit = 'no units'
            
             if(is_number(value) ):
-                srData["report"]["userDefined"].append({"Key": lastUserDefinedKey.replace("'", ""), "Value": '{:.2f}'.format(float(value)), "Unit": unit})
+                if(unit == 'mm'):
+                    value = float(value) / 10
+                    unit = 'cm'
+                if(unit == 'mm2'):
+                    value = float(value) / 100
+                    unit = 'cm2'
+                if(unit == 'mm3'):
+                    value = float(value) / 1000
+                    unit = 'cm3'
+                if(unit == 'mm/s'):
+                    value = float(value) / 10
+                    unit = 'cm/s'
+                valueNumber = '{:.2f}'.format(float(value))           
+                srData["report"]["userDefined"].append({"Key": lastUserDefinedKey.replace("'", ""), "Value": '{:.2f}'.format(float(valueNumber)), "Unit": unit})
         
 
 
@@ -321,11 +341,27 @@ def extractReport(dataSet, obj):
        
         temp = dataSet.get(pydicom.tag.Tag(0x0008, 0x1030));
 
-        if((dataSet.get(pydicom.tag.Tag(0x0008, 0x1030)) is not None) and (dataSet.get(pydicom.tag.Tag(0x0008, 0x1030)).value is not '')):
+        if((dataSet.get(pydicom.tag.Tag(0x0008, 0x1030)) is not None) and (dataSet.get(pydicom.tag.Tag(0x0008, 0x1030)).value != '')):
             print(EX.toStr(dataSet.get(pydicom.tag.Tag(0x0008, 0x1030)).value))
             srData["name"] = EX.toStr(dataSet.get(pydicom.tag.Tag(0x0008, 0x1030)).value)
         else:
             srData["name"] = "Adult Echo"
+        
+        #adding more items to patient section
+        #device name
+        obj2 = {}
+        obj2["Device"] = EX.toStr(dataSet.get(pydicom.tag.Tag(0x0008,0x1090)).value)
+        srData["report"]["patient"] |= obj2
+        #Operator's name
+        obj2 = {}
+        obj2["Operator"] = EX.toStr(dataSet.get(pydicom.tag.Tag(0x0008,0x1070)).value)
+        srData["report"]["patient"] |= obj2
+
+        obj2 = {}
+        obj2["Accession"] = EX.toStr(dataSet.get(pydicom.tag.Tag(0x0008,0x0050)).value)
+        srData["report"]["patient"] |= obj2
+
+
 
 
         print("Length of content sequence " + str(len(dataSet.get(pydicom.tag.Tag(0x0040, 0xa730)).value)))
