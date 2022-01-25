@@ -162,8 +162,8 @@ def fillSRData(key, value, unit, parent, currentChild, level, label):
                     value = float(value) / 1000
                     unit = 'cm3'
                 if(unit == 'mm/s'):
-                    value = float(value) / 10
-                    unit = 'cm/s'
+                    value = float(value) / 1000
+                    unit = 'm/s'
                 valueNumber = '{:.2f}'.format(float(value))
             else:
                 valueNumber = value    
@@ -181,7 +181,15 @@ def fillSRData(key, value, unit, parent, currentChild, level, label):
             if(currentElement == "Left Ventricle" and key == "Left Ventricular Ejection Fraction"):
                 #global lastFound;               
                 lastFound = {"Key": key, "Value": valueNumber, "Unit": unit }
+            if(currentElement == "Left Atrium" and key == "Left Atrium Systolic Volume Index"):
+                #global lastFound;               
+                lastFound = {"Key": key, "Value": valueNumber, "Unit": unit }
 
+            # if(currentElement == "Pulmonic Valve" and key == "Peak Gradient"):
+            #     #global lastFound;               
+            #     lastFound = {"Key": key, "Value": valueNumber, "Unit": unit }
+
+            #Left Atrium Systolic Volume Index
             res = chechIfAlreadyExist(srData["report"]["findingSite"][index -1]["measurements"], key.replace("'", ""), valueNumber, unit)
             if(res):
                 if(unit != ""):
@@ -206,8 +214,14 @@ def fillSRData(key, value, unit, parent, currentChild, level, label):
                 srData["report"]["userDefined"].append({"Key": "AVA VTI", "Value": lastFound["Value"], "Unit": lastFound["Unit"]}) 
 
             if(currentElement == "Left Ventricle" and key == "Measurement Method" and value == "Method of Disks, Biplane" and  lastFound != {}):
-                srData["report"]["userDefined"].append({"Key": "EF Biplane", "Value": lastFound["Value"], "Unit": lastFound["Unit"]})       
-                
+                srData["report"]["userDefined"].append({"Key": "EF Biplane", "Value": lastFound["Value"], "Unit": lastFound["Unit"]}) 
+
+            if(currentElement == "Left Atrium" and key == "Measurement Method" and value == "Method of Disks, Biplane" and  lastFound != {}):
+                srData["report"]["userDefined"].append({"Key": "LAVI", "Value": lastFound["Value"], "Unit": lastFound["Unit"]}) 
+
+            # if(currentElement == "Pulmonic Valve" and key == "Flow Direction" and value == "Antegrade Flow" and  lastFound != {}):
+            #     srData["report"]["userDefined"].append({"Key": "PV maxPG", "Value": lastFound["Value"], "Unit": lastFound["Unit"]}) 
+
             lastFound  = {}
 
             if(index > 0 and index2 > 0):

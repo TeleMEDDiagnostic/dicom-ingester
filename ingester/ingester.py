@@ -115,13 +115,15 @@ def addPatientAndTestToXML(dataSet):
                         'DeviceModel',          # SoftwareVersion
                         'DeviceSerialNumber',   # DeviceSerialNumber
                         'VendorName',           # Manufacturer
-                        'OperatorName')         # Operator Name           
+                        'OperatorName',
+                        'Accession')         # Operator Name           
     
     deviceTagTuple = (pydicom.tag.Tag(0x0008,0x1090),   # ManufacturerModelName
                         pydicom.tag.Tag(0x0018,0x1020), # SoftwareVersion
                         pydicom.tag.Tag(0x0018,0x1000), # DeviceSerialNumber
-                        pydicom.tag.Tag(0x0008,0x0070),
-                        pydicom.tag.Tag(0x0008,0x1070)) # Manufacturer
+                        pydicom.tag.Tag(0x0008,0x0070), # Manufacturer
+                        pydicom.tag.Tag(0x0008,0x1070),
+                        pydicom.tag.Tag(0x0008,0x0050)) 
 
     ts = ET.SubElement(root, "Test")
     EX.insertTupleInXML(deviceFieldTuple, deviceTagTuple, dataSet, ts)
