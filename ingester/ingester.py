@@ -265,6 +265,13 @@ def processDataSets(chunk, obj, xml):
 
     for t in threadList:
         t.join()
+def moveTestToFTPFolder(pFolder, tFolder, obj):
+    try:
+        dest = obj['folderForFTPSynch'] + "/" + pFolder + "/" + tFolder 
+        scre = obj['folderForPatients'] + "/" + pFolder + "/" + tFolder + "/"
+        SHT.move(scre, dest, copy_function = SHT.copytree)
+    except ValueError:
+        print("move to FTP fialed ... !")
 
 
 def initiateIngestion(dicomPath):
@@ -297,6 +304,7 @@ def initiateIngestion(dicomPath):
                 obj["folderForImporter"] = currentPath + "/Processed"
                 print("Using default path: " + obj["folderForImporter"] + " for report files to be use by the Importer")
 
+          
                 
 
             if not (0 < obj["scaleFactor"] < 1):
@@ -311,6 +319,7 @@ def initiateIngestion(dicomPath):
             "folderForPatients": currentPath + "/DataIngestor",
             "folderForProcessed": currentPath + "/Processed",
              "folderForImporter": currentPath + "/Importer",
+             "folderForFTPSynch" : currentPath + "/EchoFTP",
             "server": {
                 "url": "http://localhost",
                 "port": "8042",
@@ -362,8 +371,11 @@ def initiateIngestion(dicomPath):
                 if(os.path.isfile(obj['folderForProcessed'] + "/" + patientID + "/" + iuid + "/" + tail)):
                     os.remove(obj['folderForProcessed'] + "/" + patientID + "/" + iuid + "/" + tail)
                     SHT.move(f, obj['folderForProcessed'] + "/" + patientID + "/" + iuid )
+                   
                 else:
                     SHT.move(f, obj['folderForProcessed'] + "/" + patientID + "/" + iuid )
+           
+            moveTestToFTPFolder(patientID, iuid, obj)
 
         else:
             chunks = numpy.array_split(listOfPaths, len(listOfPaths) / FILES_PER_CHUNK)
@@ -375,8 +387,11 @@ def initiateIngestion(dicomPath):
                     if(os.path.isfile(obj['folderForProcessed'] + "/" + patientID + "/" + iuid + "/" + tail)):
                         os.remove(obj['folderForProcessed'] + "/" + patientID + "/" + iuid + "/" + tail)
                         SHT.move(f, obj['folderForProcessed'] + "/" + patientID + "/" + iuid )
+                      
+
                     else:
                         SHT.move(f, obj['folderForProcessed'] + "/" + patientID + "/" + iuid )
+            moveTestToFTPFolder(patientID, iuid, obj)
 
     else:
       print("There was an error processing the provided folder\n")
@@ -401,6 +416,9 @@ def initiateIngestion(dicomPath):
 
       uuidForPatient = iuid.replace('.','_');
       tree.write(testFolder + "/" + uuidForPatient + ".xml", xml_declaration = True, encoding = 'utf-8')
+      dest = obj['folderForFTPSynch'] + "/" + patientID + "/" + iuid  + "/" + uuidForPatient + ".xml"
+      scre = obj['folderForPatients'] + "/" + patientID + "/" + iuid + "/" + uuidForPatient + ".xml"
+      SHT.move(scre, dest)
 
     listOfPaths = getListOfFiles(dicomPath)
 
