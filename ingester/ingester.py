@@ -371,7 +371,7 @@ def initiateIngestion(dicomPath):
                 if(os.path.isfile(obj['folderForProcessed'] + "/" + patientID + "/" + iuid + "/" + tail)):
                     os.remove(obj['folderForProcessed'] + "/" + patientID + "/" + iuid + "/" + tail)
                     SHT.move(f, obj['folderForProcessed'] + "/" + patientID + "/" + iuid )
-                   
+                    
                 else:
                     SHT.move(f, obj['folderForProcessed'] + "/" + patientID + "/" + iuid )
            
@@ -387,11 +387,10 @@ def initiateIngestion(dicomPath):
                     if(os.path.isfile(obj['folderForProcessed'] + "/" + patientID + "/" + iuid + "/" + tail)):
                         os.remove(obj['folderForProcessed'] + "/" + patientID + "/" + iuid + "/" + tail)
                         SHT.move(f, obj['folderForProcessed'] + "/" + patientID + "/" + iuid )
-                      
-
+                        
                     else:
                         SHT.move(f, obj['folderForProcessed'] + "/" + patientID + "/" + iuid )
-            moveTestToFTPFolder(patientID, iuid, obj)
+                moveTestToFTPFolder(patientID, iuid, obj)
 
     else:
       print("There was an error processing the provided folder\n")
