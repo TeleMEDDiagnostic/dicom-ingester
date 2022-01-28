@@ -30,9 +30,12 @@ def parser(dataSet, obj, root):
     seriesID = EX.toStr(dataSet.get(pydicom.tag.Tag(0x0020, 0x000e)).value)
     instanceID = EX.toStr(dataSet.get(pydicom.tag.Tag(0x008, 0x0018)).value)
     patientDirectory = os.path.join(obj['folderForPatients'], patientID, studyID, seriesID, instanceID)
+    patientDirectoryForSync = os.path.join(obj['folderForFTPSynch'], patientID)
 
     if not os.path.exists(patientDirectory):
         os.makedirs(patientDirectory)
+    if not os.path.exists(patientDirectoryForSync):   
+        os.makedirs(patientDirectoryForSync)
 
     # ECG
     if EX.toStr(dataSet.get(modality).value) == "ECG":
@@ -265,9 +268,10 @@ def processDataSets(chunk, obj, xml):
 
     for t in threadList:
         t.join()
+
 def moveTestToFTPFolder(pFolder, tFolder, obj):
     try:
-        dest = obj['folderForFTPSynch'] + "/" + pFolder + "/" + tFolder 
+        dest = obj['folderForFTPSynch'] + "/" + pFolder + "/" + tFolder + "/"
         scre = obj['folderForPatients'] + "/" + pFolder + "/" + tFolder + "/"
         SHT.move(scre, dest, copy_function = SHT.copytree)
     except ValueError:
@@ -375,7 +379,7 @@ def initiateIngestion(dicomPath):
                 else:
                     SHT.move(f, obj['folderForProcessed'] + "/" + patientID + "/" + iuid )
            
-            moveTestToFTPFolder(patientID, iuid, obj)
+        #moveTestToFTPFolder(patientID, iuid, obj)
 
         else:
             chunks = numpy.array_split(listOfPaths, len(listOfPaths) / FILES_PER_CHUNK)
@@ -390,7 +394,8 @@ def initiateIngestion(dicomPath):
                         
                     else:
                         SHT.move(f, obj['folderForProcessed'] + "/" + patientID + "/" + iuid )
-                moveTestToFTPFolder(patientID, iuid, obj)
+                        
+        moveTestToFTPFolder(patientID, iuid, obj)
 
     else:
       print("There was an error processing the provided folder\n")
