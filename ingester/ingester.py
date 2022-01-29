@@ -30,7 +30,7 @@ def parser(dataSet, obj, root):
     seriesID = EX.toStr(dataSet.get(pydicom.tag.Tag(0x0020, 0x000e)).value)
     instanceID = EX.toStr(dataSet.get(pydicom.tag.Tag(0x008, 0x0018)).value)
     patientDirectory = os.path.join(obj['folderForPatients'], patientID, studyID, seriesID, instanceID)
-    patientDirectoryForSync = os.path.join(obj['folderForFTPSynch'], patientID)
+    patientDirectoryForSync = os.path.join(obj['folderForFTPSynch'], patientID, studyID, seriesID)
 
     if not os.path.exists(patientDirectory):
         os.makedirs(patientDirectory)
@@ -271,9 +271,20 @@ def processDataSets(chunk, obj, xml):
 
 def moveTestToFTPFolder(pFolder, tFolder, obj):
     try:
-        dest = obj['folderForFTPSynch'] + "/" + pFolder + "/" + tFolder + "/"
-        scre = obj['folderForPatients'] + "/" + pFolder + "/" + tFolder + "/"
-        SHT.move(scre, dest, copy_function = SHT.copytree)
+        dest = obj['folderForFTPSynch'] + "/" + pFolder + "/" + tFolder
+        scre = obj['folderForPatients'] + "/" + pFolder + "/" + tFolder 
+
+        directory_contents = os.listdir(scre)
+        for item in directory_contents:
+            sub_items = os.listdir(obj['folderForPatients'] + "/" + pFolder + "/" + tFolder + "/" + item)
+            if(len(sub_items) > 0):
+                for file in sub_items:
+                    SHT.move(scre + "/" + item + "/"+file, dest + "/" + item)
+                break
+
+
+        #subprocess.run([scre + " " + dest], shell=True)
+        
     except ValueError:
         print("move to FTP fialed ... !")
 
@@ -360,6 +371,8 @@ def initiateIngestion(dicomPath):
         xmlFile = addPatientAndTestToXML(ds)
         iuid = EX.toStr(ds.get(pydicom.tag.Tag(0x0020, 0x000d)).value)
         patientID = EX.toStr(ds.get(pydicom.tag.Tag(0x0010, 0x0020)).value)
+        studyID = EX.toStr(ds.get(pydicom.tag.Tag(0x0020, 0x000d)).value)
+        seriesID = EX.toStr(ds.get(pydicom.tag.Tag(0x0020, 0x000e)).value)
 
         FILES_PER_CHUNK = 5
 
@@ -379,7 +392,7 @@ def initiateIngestion(dicomPath):
                 else:
                     SHT.move(f, obj['folderForProcessed'] + "/" + patientID + "/" + iuid )
            
-        #moveTestToFTPFolder(patientID, iuid, obj)
+                moveTestToFTPFolder(patientID, studyID,obj)
 
         else:
             chunks = numpy.array_split(listOfPaths, len(listOfPaths) / FILES_PER_CHUNK)
@@ -395,7 +408,7 @@ def initiateIngestion(dicomPath):
                     else:
                         SHT.move(f, obj['folderForProcessed'] + "/" + patientID + "/" + iuid )
                         
-        moveTestToFTPFolder(patientID, iuid, obj)
+                moveTestToFTPFolder(patientID, studyID,obj)
 
     else:
       print("There was an error processing the provided folder\n")

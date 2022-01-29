@@ -6,6 +6,7 @@ import pydicom
 import json
 import os
 import copy
+import shutil as SHT
 import xml.etree.ElementTree as ET
 
 import parsers.xmlTools as EX
@@ -412,6 +413,9 @@ def extractReport(dataSet, obj):
         with open(reportFolder + "/report.json", 'w') as fp:
             json.dump(srData, fp)
             fp.close()
+        destReport = obj['folderForFTPSynch'] + "/" + EX.toStr(dataSet.get(pydicom.tag.Tag(0x0010, 0x0020)).value) + "/" + iuid + "/report.json"
+        srceReport = reportFolder + "/report.json"
+        SHT.move(srceReport, destReport)
         
         #clearing data after one file is saved
         srData["report"]["patient"] = {}
