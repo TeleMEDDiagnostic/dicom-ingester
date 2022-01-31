@@ -414,7 +414,7 @@ def extractReport(dataSet, obj):
             json.dump(srData, fp)
             fp.close()
         destReport = obj['folderForFTPSynch'] + "/" + EX.toStr(dataSet.get(pydicom.tag.Tag(0x0010, 0x0020)).value) + "/" + iuid + "/report.json"
-        srceReport = reportFolder + "/report.json"
+        srceReport = testFolder + "/report.json"
         SHT.move(srceReport, destReport)
         
         #clearing data after one file is saved
