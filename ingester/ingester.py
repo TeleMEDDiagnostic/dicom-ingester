@@ -11,6 +11,7 @@ import pydicom
 import xml.etree.ElementTree as ET
 import uuid
 import time
+import stat
 import subprocess
 import shutil as SHT
 
@@ -31,11 +32,15 @@ def parser(dataSet, obj, root):
     instanceID = EX.toStr(dataSet.get(pydicom.tag.Tag(0x008, 0x0018)).value)
     patientDirectory = os.path.join(obj['folderForPatients'], patientID, studyID, seriesID, instanceID)
     patientDirectoryForSync = os.path.join(obj['folderForFTPSynch'], patientID, studyID, seriesID)
-
+    folderForImporter = os.path.join(obj['folderForImporter'], patientID, studyID)    
+    folderForTemplate = os.path.join(obj['folderForTemplate'], "EmptyReport.json")
     if not os.path.exists(patientDirectory):
         os.makedirs(patientDirectory)
     if not os.path.exists(patientDirectoryForSync):   
         os.makedirs(patientDirectoryForSync)
+    if not os.path.exists(folderForImporter): 
+        os.makedirs(folderForImporter)
+        SHT.copy2(folderForTemplate, folderForImporter + "/" + "report.json")
 
     # ECG
     if EX.toStr(dataSet.get(modality).value) == "ECG":
@@ -224,6 +229,10 @@ def getTestsFromPACS(patientID, obj):
 
     return historicalData
 
+def file_age_in_seconds(pathname):
+    ttime = time.time() - os.stat(pathname)[stat.ST_MTIME]
+    return ttime
+
 def getPaths(path):
     paths = []
 
@@ -241,7 +250,8 @@ def getPaths(path):
                 ds2 = pydicom.dcmread(os.path.join(root, file))
                 patientIDCurrent = EX.toStr(ds2.get(pydicom.tag.Tag(0x0010, 0x0020)).value)
                 if(patientID01 == patientIDCurrent):
-                    paths.append(os.path.join(root, file))
+                    if file_age_in_seconds(os.path.join(root, file)) > 30:
+                        paths.append(os.path.join(root, file))
                    
 
     return paths
@@ -251,7 +261,9 @@ def getListOfFiles(path):
     
     for root, dirs, files in os.walk(path):            
         for file in files:
-            paths.append(os.path.join(root, file))
+            fileName = os.path.join(root, file)
+            if file_age_in_seconds(fileName) > 30:
+                paths.append(os.path.join(root, file))
                     
 
     return paths
@@ -287,6 +299,8 @@ def moveTestToFTPFolder(pFolder, tFolder, obj):
         
     except ValueError:
         print("move to FTP fialed ... !")
+
+
 
 
 def initiateIngestion(dicomPath):
@@ -335,6 +349,7 @@ def initiateIngestion(dicomPath):
             "folderForProcessed": currentPath + "/Processed",
              "folderForImporter": currentPath + "/Importer",
              "folderForFTPSynch" : currentPath + "/EchoFTP",
+             "folderForTemplate" : currentPath + "/Template",
             "server": {
                 "url": "http://localhost",
                 "port": "8042",

@@ -1,0 +1,65 @@
+{
+	"name": "ADULT ECHO",
+	"report": {
+		"patient": {
+			"Device": "Affiniti CVx",			
+			"Accession": ""
+		},
+		"findingSite": [
+			{
+				"Name": "Left Ventricle",
+				"measurements": [
+				]
+			},
+			{
+				"Name": "Left Atrium",
+				"measurements": []
+			},
+			{
+				"Name": "Right Atrium",
+				"measurements": []
+			},
+			{
+				"Name": "Aortic Valve",
+				"measurements": []
+			},
+			{
+				"Name": "Aorta",
+				"measurements": []
+			},
+			{
+				"Name": "Hepatic Vein",
+				"measurements": []
+			},
+			{
+				"Name": "Inferior vena cava",
+				"measurements": []
+			},
+			{
+				"Name": "Mitral Valve",
+				"measurements": []
+			},
+			{
+				"Name": "Pulmonic Valve",
+				"measurements": []
+			},
+			{
+				"Name": "Pulmonary Venous Structure",
+				"measurements": []
+			},
+			{
+				"Name": "Right Ventricle",
+				"measurements": []
+			},
+			{
+				"Name": "Tricuspid Valve",
+				"measurements": []
+			},
+			{
+				"Name": "Cardiac Shunt Study",
+				"measurements": []
+			}
+		],
+		"userDefined": []
+	}
+}
