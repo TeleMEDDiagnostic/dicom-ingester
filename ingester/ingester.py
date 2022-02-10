@@ -38,9 +38,9 @@ def parser(dataSet, obj, root):
         os.makedirs(patientDirectory)
     if not os.path.exists(patientDirectoryForSync):   
         os.makedirs(patientDirectoryForSync)
-    # if not os.path.exists(folderForImporter): 
-    #     os.makedirs(folderForImporter)
-    #     SHT.copy2(folderForTemplate, folderForImporter + "/" + "report.json")
+    if not os.path.exists(folderForImporter): 
+        os.makedirs(folderForImporter)
+        SHT.copy2(folderForTemplate, folderForImporter + "/" + "report.json")
 
     # ECG
     if EX.toStr(dataSet.get(modality).value) == "ECG":
@@ -280,6 +280,11 @@ def processDataSets(chunk, obj, xml):
 
     for t in threadList:
         t.join()
+def moveFilesToFTPImageFolder(source, destFolder):
+    for root, dirs, files in os.walk(source):
+        for file in files:
+            SHT.move(os.path.join(source, file), os.path.join(destFolder, file))
+
 
 def moveTestToFTPFolder(pFolder, tFolder, obj):
     try:
@@ -291,7 +296,11 @@ def moveTestToFTPFolder(pFolder, tFolder, obj):
             sub_items = os.listdir(obj['folderForPatients'] + "/" + pFolder + "/" + tFolder + "/" + item)
             if(len(sub_items) > 0):
                 for file in sub_items:
-                    SHT.move(scre + "/" + item + "/"+file, dest + "/" + item)
+                    imageFolder = scre + "/" + item + "/"+file
+                    if os.path.exists(imageFolder):
+                        moveFilesToFTPImageFolder(imageFolder, os.path.join(dest, item, file))
+                    else:                    
+                        SHT.move(imageFolder, os.path.join(dest, item))
                 break
 
 
