@@ -406,6 +406,14 @@ def extractReport(dataSet, obj):
             fp.close()
         
         reportFolder = obj["folderForImporter"] + "/" + EX.toStr(dataSet.get(pydicom.tag.Tag(0x0010, 0x0020)).value) + "/" + iuid
+
+        reportPatientFolder = obj["folderForImporter"] + "/" + EX.toStr(dataSet.get(pydicom.tag.Tag(0x0010, 0x0020)).value) 
+        # if os.path.isfile(reportFolder + "/report.json"):
+        #     os.remove(reportFolder + "/report.json")
+        if os.path.exists(reportPatientFolder):
+            SHT.rmtree(reportPatientFolder)
+
+
         if not os.path.exists(reportFolder):
             os.makedirs(reportFolder)
         
@@ -413,6 +421,8 @@ def extractReport(dataSet, obj):
         with open(reportFolder + "/report.json", 'w') as fp:
             json.dump(srData, fp)
             fp.close()
+
+
         destReport = obj['folderForFTPSynch'] + "/" + EX.toStr(dataSet.get(pydicom.tag.Tag(0x0010, 0x0020)).value) + "/" + iuid + "/report.json"
         srceReport = testFolder + "/report.json"
         SHT.move(srceReport, destReport)
