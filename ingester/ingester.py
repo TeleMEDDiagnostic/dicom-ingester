@@ -297,11 +297,11 @@ def moveTestToFTPFolder(pFolder, tFolder, obj):
             if(len(sub_items) > 0):
                 for file in sub_items:
                     imageFolder = scre + "/" + item + "/"+file
-                    dest = os.path.join(dest, item, file)
-                    if os.path.exists(dest):
-                        moveFilesToFTPImageFolder(imageFolder, dest)
+                    destFTP = os.path.join(dest, item, file)
+                    if os.path.exists(destFTP):
+                        moveFilesToFTPImageFolder(imageFolder, destFTP)
                     else:                    
-                        SHT.move(imageFolder, os.path.join(dest))
+                        SHT.move(imageFolder, destFTP)
                 break
 
 
