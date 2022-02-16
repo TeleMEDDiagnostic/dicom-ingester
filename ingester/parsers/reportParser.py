@@ -365,16 +365,20 @@ def extractReport(dataSet, obj):
         #adding more items to patient section
         #device name
         obj2 = {}
-        obj2["Device"] = EX.toStr(dataSet.get(pydicom.tag.Tag(0x0008,0x1090)).value)
-        srData["report"]["patient"] |= obj2
+        
+        if dataSet.get(pydicom.tag.Tag(0x0008,0x1090)) is not None:
+            obj2["Device"] = EX.toStr(dataSet.get(pydicom.tag.Tag(0x0008,0x1090)).value)
+            srData["report"]["patient"] |= obj2
         #Operator's name
         obj2 = {}
-        obj2["Operator"] = EX.toStr(dataSet.get(pydicom.tag.Tag(0x0008,0x1070)).value)
-        srData["report"]["patient"] |= obj2
+        if dataSet.get(pydicom.tag.Tag(0x0008,0x1070)) is not None:
+            obj2["Operator"] = EX.toStr(dataSet.get(pydicom.tag.Tag(0x0008,0x1070)).value)
+            srData["report"]["patient"] |= obj2
 
         obj2 = {}
-        obj2["Accession"] = EX.toStr(dataSet.get(pydicom.tag.Tag(0x0008,0x0050)).value)
-        srData["report"]["patient"] |= obj2
+        if dataSet.get(pydicom.tag.Tag(0x0008,0x0050)) is not None:
+            obj2["Accession"] = EX.toStr(dataSet.get(pydicom.tag.Tag(0x0008,0x0050)).value)
+            srData["report"]["patient"] |= obj2
 
 
 

@@ -175,6 +175,19 @@ def getIndex(comment):
   else:
       return random.randint(800, 999)
 
+def getIndex(dataSet):
+  xy = 0
+  tag = dataSet.get(pydicom.tag.Tag(0x0008,0x2120))
+  if tag is not None:
+    numberOfStages =  dataSet.get(pydicom.tag.Tag(0x0008,0x2124)).value
+    stageNumber =  dataSet.get(pydicom.tag.Tag(0x0008,0x2122)).value
+    viewNumber = dataSet.get(pydicom.tag.Tag(0x0008,0x2128)).value
+    xy = (numberOfStages * 100) + (stageNumber * 10) + viewNumber
+    return xy
+     
+  else:
+      return random.randint(800, 999)
+
 def returnElementNotNull(elem):
   if elem is not None:
     return elem
@@ -225,7 +238,7 @@ def imageToPng(dataSet, obj):
                         "pixelRepresentation" : dataSet.get(pydicom.tag.Tag(0x0028, 0x0103)),
                         "stageName" : returnElementNotNull(dataSet.get(pydicom.tag.Tag(0x0008, 0x2120))),
                         "viewName" : returnElementNotNull(dataSet.get(pydicom.tag.Tag(0x0008, 0x2127))),
-                        "index" : getIndex(dataSet.get(pydicom.tag.Tag(0x0020, 0x4000))),
+                        "index" : getIndex(dataSet),
                         "comment" : returnElementNotNull(dataSet.get(pydicom.tag.Tag(0x0020, 0x4000))),
                         "Date" : dataSet.get(pydicom.tag.Tag(0x0008, 0x0023)),
                         "Time" : dataSet.get(pydicom.tag.Tag(0x0008,0x0033))

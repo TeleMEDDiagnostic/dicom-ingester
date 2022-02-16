@@ -285,6 +285,25 @@ def moveFilesToFTPImageFolder(source, destFolder):
         for file in files:
             SHT.move(os.path.join(source, file), os.path.join(destFolder, file))
 
+def checkIfFolderIsEmpty(folder):
+    if os.path.isdir(folder):
+        if not os.listdir(folder):
+            return True
+        else:    
+            return False
+    else:
+        return False
+
+def createFileForFolderCheckProcess(destfolder, file, obj):
+    try:  
+        if checkIfFolderIsEmpty(destfolder):
+            dest = obj['folderForFolderToCheck'] 
+            f = open(dest + "/" + file + ".txt", "w+")
+            f.write(destfolder)
+            f.close()
+
+    except ValueError:
+        print("file for folder check failed ... !")
 
 def moveTestToFTPFolder(pFolder, tFolder, obj):
     try:
@@ -302,6 +321,7 @@ def moveTestToFTPFolder(pFolder, tFolder, obj):
                         moveFilesToFTPImageFolder(imageFolder, destFTP)
                     else:                    
                         SHT.move(imageFolder, destFTP)
+                    createFileForFolderCheckProcess(destFTP, file, obj)
                 break
 
 
@@ -360,6 +380,7 @@ def initiateIngestion(dicomPath):
              "folderForImporter": currentPath + "/Importer",
              "folderForFTPSynch" : currentPath + "/EchoFTP",
              "folderForTemplate" : currentPath + "/Template",
+             "folderForFolderToCheck" : currentPath + "/FolderToCheck",
             "server": {
                 "url": "http://localhost",
                 "port": "8042",
