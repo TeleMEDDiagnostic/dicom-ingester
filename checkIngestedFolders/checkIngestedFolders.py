@@ -21,7 +21,8 @@ def restoreDicomFile(obj, filePath, folderToCheck, dcmFile):
     try:
         result = glob.glob(folderToCheck + "/" + "*." + dcmFile)
         if os.path.isfile(result[0]):
-            SHT.move(result[0], obj["incomingFolder"])
+            head, tail = os.path.split(result[0])
+            SHT.move(result[0], obj["incomingFolder"] + "/" + tail)
         if not os.path.isfile(result[0]):
             os.remove(filePath)
     except FileNotFoundError:
