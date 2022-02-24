@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 # -*- coding utf utf-8 -*-
 
+from turtle import delay
 import urllib3
 import json
 import io
@@ -22,6 +23,15 @@ import parsers.waveforParser as wf
 import parsers.reportParser as sr
 
 
+
+def checkIfSRFile(dataSet):
+    modality = pydicom.tag.Tag(0x0008,0x0060)
+    if EX.toStr(dataSet.get(modality).value) == "SR":
+        return True
+    else:
+        return False
+
+
 def parser(dataSet, obj, root):
   
     modality = pydicom.tag.Tag(0x0008,0x0060)
@@ -30,7 +40,7 @@ def parser(dataSet, obj, root):
     studyID = EX.toStr(dataSet.get(pydicom.tag.Tag(0x0020, 0x000d)).value)
     seriesID = EX.toStr(dataSet.get(pydicom.tag.Tag(0x0020, 0x000e)).value)
     instanceID = EX.toStr(dataSet.get(pydicom.tag.Tag(0x008, 0x0018)).value)
-    patientDirectory = os.path.join(obj['folderForPatients'], patientID, studyID, seriesID, instanceID)
+    patientDirectory = os.path.join(obj['folderForPatients'], patientID, studyID, seriesID)
     patientDirectoryForSync = os.path.join(obj['folderForFTPSynch'], patientID, studyID, seriesID)
     folderForImporter = os.path.join(obj['folderForImporter'], patientID, studyID)    
     folderForTemplate = os.path.join(obj['folderForTemplate'], "EmptyReport.json")
@@ -250,7 +260,7 @@ def getPaths(path):
                 ds2 = pydicom.dcmread(os.path.join(root, file))
                 patientIDCurrent = EX.toStr(ds2.get(pydicom.tag.Tag(0x0010, 0x0020)).value)
                 if(patientID01 == patientIDCurrent):
-                    if file_age_in_seconds(os.path.join(root, file)) > 30:
+                    if file_age_in_seconds(os.path.join(root, file)) > 60:
                         paths.append(os.path.join(root, file))
                    
 
@@ -262,7 +272,7 @@ def getListOfFiles(path):
     for root, dirs, files in os.walk(path):            
         for file in files:
             fileName = os.path.join(root, file)
-            if file_age_in_seconds(fileName) > 30:
+            if file_age_in_seconds(fileName) > 60:
                 paths.append(os.path.join(root, file))
                     
 
@@ -286,6 +296,8 @@ def moveFilesToFTPImageFolder(source, destFolder):
             SHT.move(os.path.join(source, file), os.path.join(destFolder, file))
 
 def checkIfFolderIsEmpty(folder):
+    if not os.path.exists(folder):
+        return False
     if os.path.isdir(folder):
         if not os.listdir(folder):
             return True
@@ -314,6 +326,7 @@ def moveTestToFTPFolder(pFolder, tFolder, obj):
         for item in directory_contents:
             sub_items = os.listdir(obj['folderForPatients'] + "/" + pFolder + "/" + tFolder + "/" + item)
             if(len(sub_items) > 0):
+                time.sleep(2)
                 for file in sub_items:
                     imageFolder = scre + "/" + item + "/"+file
                     destFTP = os.path.join(dest, item, file)
@@ -431,13 +444,16 @@ def initiateIngestion(dicomPath):
             for f in listOfPaths:
                 parser(isValidDICOMfile(f), obj, xmlFile)
                 head, tail = os.path.split(f)
+                #isItSR = checkIfSRFile(isValidDICOMfile(f))
                 if(os.path.isfile(obj['folderForProcessed'] + "/" + patientID + "/" + iuid + "/" + tail)):
                     os.remove(obj['folderForProcessed'] + "/" + patientID + "/" + iuid + "/" + tail)
                     SHT.move(f, obj['folderForProcessed'] + "/" + patientID + "/" + iuid )
                     
                 else:
                     SHT.move(f, obj['folderForProcessed'] + "/" + patientID + "/" + iuid )
-           
+                #if isItSR:
+                #    print ("SR no folder move")
+                #else:
                 moveTestToFTPFolder(patientID, studyID,obj)
 
         else:
@@ -447,14 +463,18 @@ def initiateIngestion(dicomPath):
                 processDataSets(chunk, obj, xmlFile)
                 for f in chunk:
                     head, tail = os.path.split(f)
+                    #isItSR = checkIfSRFile(isValidDICOMfile(f))
                     if(os.path.isfile(obj['folderForProcessed'] + "/" + patientID + "/" + iuid + "/" + tail)):
                         os.remove(obj['folderForProcessed'] + "/" + patientID + "/" + iuid + "/" + tail)
                         SHT.move(f, obj['folderForProcessed'] + "/" + patientID + "/" + iuid )
                         
                     else:
                         SHT.move(f, obj['folderForProcessed'] + "/" + patientID + "/" + iuid )
-                        
-                moveTestToFTPFolder(patientID, studyID,obj)
+                    
+                    #if isItSR:
+                    #    print ("SR no folder move")
+                    #else:     
+                    moveTestToFTPFolder(patientID, studyID,obj)
 
     else:
       print("There was an error processing the provided folder\n")

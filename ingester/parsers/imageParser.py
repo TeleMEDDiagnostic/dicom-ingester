@@ -177,16 +177,28 @@ def getIndex(comment):
 
 def getIndex(dataSet):
   xy = 0
+  stage = 0
   tag = dataSet.get(pydicom.tag.Tag(0x0008,0x2120))
   if tag is not None:
     numberOfStages =  dataSet.get(pydicom.tag.Tag(0x0008,0x2124)).value
     stageNumber =  dataSet.get(pydicom.tag.Tag(0x0008,0x2122)).value
     viewNumber = dataSet.get(pydicom.tag.Tag(0x0008,0x2128)).value
-    xy = (numberOfStages * 100) + (stageNumber * 10) + viewNumber
+    stageName =  EX.toStr(dataSet.get(pydicom.tag.Tag(0x0008,0x2120)).value).upper()
+
+    if stageName == "REST":
+      stage = 1
+    if stageName == "POST" or stageName == "PEAK":
+      stage = 2
+    if stageName == "RECOVERY":
+      stage = 3 
+
+    #xy = (numberOfStages * 1000) + (stageNumber * 100) + (viewNumber * 10) + stage
+
+    xy = (viewNumber * 100) + (stageNumber * 10) + stage
     return xy
      
   else:
-      return random.randint(800, 999)
+      return random.randint(8000, 9999)
 
 def returnElementNotNull(elem):
   if elem is not None:

@@ -73,7 +73,7 @@ def init():
 
 
     except FileNotFoundError:
-        print("File config.json not found, creating one with default output path: " + currentPath + "/DataIngestor")
+        print("File config.json not found, creating one with default output path: " + currentPath )
        
 if __name__ == "__main__":
     import sys
