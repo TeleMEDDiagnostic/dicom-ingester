@@ -13,6 +13,7 @@ def toStr(val):
 
         result = val.encode('utf-8').decode("utf-8")
 
+
     elif isinstance(val, pydicom.valuerep.IS):
         result = val.original_string
 
@@ -22,6 +23,7 @@ def toStr(val):
         result = str(val)
     elif isinstance(val, pydicom.multival.MultiValue):
         result = val.__str__()
+    
 
     return result
 
