@@ -10,10 +10,10 @@ def toStr(val):
     if isinstance(val, pydicom.valuerep.PersonName) or isinstance(val, pydicom.valuerep.PersonNameUnicode):
         # https://stackoverflow.com/questions/606191/convert-bytes-to-a-string
         # theName = theValue.encode().decode("cp437", 'backslashreplace') <-- consider this if there are problems with encoding
-
+ 
         result = val.encode('utf-8').decode("utf-8")
 
-
+    
     elif isinstance(val, pydicom.valuerep.IS):
         result = val.original_string
 
@@ -23,6 +23,9 @@ def toStr(val):
         result = str(val)
     elif isinstance(val, pydicom.multival.MultiValue):
         result = val.__str__()
+    elif isinstance(val, str):
+        result = val.__str__()
+
     
 
     return result
