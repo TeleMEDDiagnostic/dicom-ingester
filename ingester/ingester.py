@@ -474,7 +474,7 @@ def initiateIngestion(dicomPath):
                     #if isItSR:
                     #    print ("SR no folder move")
                     #else:     
-                    moveTestToFTPFolder(patientID, studyID,obj)
+                moveTestToFTPFolder(patientID, studyID,obj)
 
     else:
       print("There was an error processing the provided folder\n")
