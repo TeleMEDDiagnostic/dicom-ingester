@@ -31,6 +31,13 @@ def checkIfSRFile(dataSet):
     else:
         return False
 
+def makefolderForMe(folderName):
+    try:
+        os.makedirs(folderName)
+    except FileExistsError:
+        print("folder already created by another thread ..!")
+
+
 
 def parser(dataSet, obj, root):
   
@@ -45,11 +52,11 @@ def parser(dataSet, obj, root):
     folderForImporter = os.path.join(obj['folderForImporter'], patientID, studyID)    
     folderForTemplate = os.path.join(obj['folderForTemplate'], "EmptyReport.json")
     if not os.path.exists(patientDirectory):
-        os.makedirs(patientDirectory)
+        makefolderForMe(patientDirectory)
     if not os.path.exists(patientDirectoryForSync):   
-        os.makedirs(patientDirectoryForSync)
+        makefolderForMe(patientDirectoryForSync)
     if not os.path.exists(folderForImporter): 
-        os.makedirs(folderForImporter)
+        makefolderForMe(folderForImporter)
         SHT.copy2(folderForTemplate, folderForImporter + "/" + "report.json")
 
     # ECG
@@ -316,8 +323,8 @@ def createFileForFolderCheckProcess(destfolder, file, obj):
 
     except ValueError:
         print("file for folder check failed ... !")
-
 def moveTestToFTPFolder(pFolder, tFolder, obj):
+
     try:
         dest = obj['folderForFTPSynch'] + "/" + pFolder + "/" + tFolder
         scre = obj['folderForPatients'] + "/" + pFolder + "/" + tFolder 
