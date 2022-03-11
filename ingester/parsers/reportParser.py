@@ -124,6 +124,25 @@ def processChild(dataSet, level, parent, elements, child):
         counter += 1
         elements[0] += 1
 
+def makefolderForMe(folderName):
+    try:
+        os.makedirs(folderName)
+    except FileExistsError:
+        print("folder already created by another thread ..!")
+
+def rmtreeForMe(folderName):
+    try:
+        SHT.rmtree(folderName)
+    except FileExistsError:
+        print("folder already remtree by another thread ..!")
+
+def removeForMe(folderName):
+    try:
+        os.remove(folderName)
+    except FileExistsError:
+        print("folder already removed by another thread ..!")
+
+
 def chechIfAlreadyExist(data, key, value, unit):
     for item in data:
        
@@ -402,7 +421,8 @@ def extractReport(dataSet, obj):
         testFolder =  patientDir + "/" + iuid
 
         if not os.path.exists(testFolder):
-            os.makedirs(testFolder)
+            makefolderForMe(testFolder)
+            #os.makedirs(testFolder)
 
         # srDataAvgs = generateMeasurmentAvg(srData);
         with open(testFolder + "/report.json", 'w') as fp:
@@ -413,14 +433,17 @@ def extractReport(dataSet, obj):
 
         reportPatientFolder = obj["folderForImporter"] + "/" + EX.toStr(dataSet.get(pydicom.tag.Tag(0x0010, 0x0020)).value) 
         if os.path.isfile(reportFolder + "/report.json"):
-            os.remove(reportFolder + "/report.json")
+            removeForMe(reportFolder + "/report.json")
+            #os.remove(reportFolder + "/report.json")
             
         if os.path.exists(reportPatientFolder):
-            SHT.rmtree(reportPatientFolder)
+            rmtreeForMe(reportPatientFolder)
+            #SHT.rmtree(reportPatientFolder)
 
 
         if not os.path.exists(reportFolder):
-            os.makedirs(reportFolder)
+            makefolderForMe(reportFolder)
+            #os.makedirs(reportFolder)
         
         # create the report file to trigger importer action to import a new test
 
