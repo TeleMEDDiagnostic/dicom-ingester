@@ -51,13 +51,15 @@ def parser(dataSet, obj, root):
     patientDirectoryForSync = os.path.join(obj['folderForFTPSynch'], patientID, studyID, seriesID)
     folderForImporter = os.path.join(obj['folderForImporter'], patientID, studyID)    
     folderForTemplate = os.path.join(obj['folderForTemplate'], "EmptyReport.json")
+    
     if not os.path.exists(patientDirectory):
         makefolderForMe(patientDirectory)
     if not os.path.exists(patientDirectoryForSync):   
         makefolderForMe(patientDirectoryForSync)
-    if not os.path.exists(folderForImporter): 
-        makefolderForMe(folderForImporter)
-        SHT.copy2(folderForTemplate, folderForImporter + "/" + "report.json")
+
+    # if not os.path.exists(folderForImporter): 
+    #     makefolderForMe(folderForImporter)
+    #     SHT.copy2(folderForTemplate, folderForImporter + "/" + "report.json")
 
     # ECG
     if EX.toStr(dataSet.get(modality).value) == "ECG":
