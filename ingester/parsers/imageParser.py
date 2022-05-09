@@ -209,6 +209,10 @@ def returnElementNotNullReturnNum(elem):
   if elem is not None:
     return elem.value
   return 0
+def returnElementNotNullReturnNumInt(elem):
+  if elem is not None:
+    return int(elem.value)
+  return 0
 def returnElementNotNullReturnStr(elem):
   if elem is not None:
     return elem.value
@@ -262,7 +266,9 @@ def imageToPng(dataSet, obj):
                         "index" : getIndex(dataSet),
                         "comment" : returnElementNotNull(dataSet.get(pydicom.tag.Tag(0x0020, 0x4000))),
                         "Date" : dataSet.get(pydicom.tag.Tag(0x0008, 0x0023)),
-                        "Time" : dataSet.get(pydicom.tag.Tag(0x0008,0x0033))
+                        "Time" : dataSet.get(pydicom.tag.Tag(0x0008,0x0033)),
+                        "ElapsedTime" : returnElementNotNullReturnNumInt(dataSet.get(pydicom.tag.Tag(0x0008, 0x2130))),
+                        "HeartRate" : returnElementNotNullReturnNumInt(dataSet.get(pydicom.tag.Tag(0x0018, 0x1088)))
                         }
                 }
 
