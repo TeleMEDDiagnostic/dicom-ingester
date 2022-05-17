@@ -121,6 +121,8 @@ def addPatientAndTestToXML(dataSet):
                         'PatientEthnic',    # EthnicGroup
                         'PatientWeight',    # PatientWeight
                         'PatientHeight')    # PatientSize
+                        # 'SystolicBloodPressure',  # Systolic_Blood_Pressure
+                        # 'DiastolicBloodPressure') # Diastolic_Blood_Pressure
 
     patientTagTuple = (pydicom.tag.Tag(0x0010,0x0020),    # PatientID
                         pydicom.tag.Tag(0x0010,0x0010),   # PatientName

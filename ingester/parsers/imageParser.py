@@ -198,7 +198,7 @@ def getIndex(dataSet):
     return xy
      
   else:
-      return random.randint(8000, 9999)
+      return int(returnElementNotNullReturnNum(dataSet.get(pydicom.tag.Tag(0x0008,0x0033))))
 
 def returnElementNotNull(elem):
   if elem is not None:
