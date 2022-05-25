@@ -10,6 +10,8 @@ import shutil as SHT
 import xml.etree.ElementTree as ET
 
 import parsers.xmlTools as EX
+import tools.stringUtil as su
+
 srData = { "name" : "Adult Echocardiography Report",
         "report" : {
         "patient" : {},
@@ -25,9 +27,10 @@ currentElement=""
 
 
 
-def processChild(dataSet, level, parent, elements, child):
+def processChild(dataSet, level, parent, elements, child, anonymizedPatientName):
     counter = 0
     spaces = "     " * level
+    anonymizedPatientNameEx = anonymizedPatientName;
 
    
 
@@ -113,13 +116,13 @@ def processChild(dataSet, level, parent, elements, child):
             
 
         if key != "" and val != "" and key != "Finding Site" :
-            fillSRData(key, val, unit, parent, child, level, label)
+            fillSRData(key, val, unit, parent, child, level, label, anonymizedPatientNameEx)
 
         contentSequence = i.get(pydicom.tag.Tag(0x0040, 0xa730))
         #print("\n" + spaces + "Child " + str(counter) + ", level " + str(level))
         if contentSequence is not None:
             #print(spaces + "Entering level ------------" + str(level + 1))            
-            processChild(contentSequence.value, level + 1, parent, elements, child)
+            processChild(contentSequence.value, level + 1, parent, elements, child, anonymizedPatientNameEx)
             #print(spaces + "Exiting level ------------" + str(level + 1))            
         counter += 1
         elements[0] += 1
@@ -158,9 +161,8 @@ def is_number(s):
         return False
 
 
-def fillSRData(key, value, unit, parent, currentChild, level, label):
-    obj = {}
-   
+def fillSRData(key, value, unit, parent, currentChild, level, label, anonymizedPatientName):
+    obj = {}   
 
 
     if parent == "Finding Site":
@@ -258,7 +260,10 @@ def fillSRData(key, value, unit, parent, currentChild, level, label):
 
     if parent == "patient":
         key1 = key.replace(' ', '_')
-        obj[key1] = value
+        if((anonymizedPatientName == True) and (key1 == "Subject_Name")):
+             obj[key1] = su.getMaskedString(value)
+        else:
+            obj[key1] = value
         srData["report"]["patient"] |= obj
 
     if parent == "Label":        
@@ -407,7 +412,7 @@ def extractReport(dataSet, obj):
         counter = 0
         numberOfElements = []
         numberOfElements.append(0)
-        processChild(dataSet.get(pydicom.tag.Tag(0x0040, 0xa730)).value, 0, "patient", numberOfElements, "")
+        processChild(dataSet.get(pydicom.tag.Tag(0x0040, 0xa730)).value, 0, "patient", numberOfElements, "", obj["anonymizedPatientName"])
 
         print("Number of elements " + str(numberOfElements[0]))
         

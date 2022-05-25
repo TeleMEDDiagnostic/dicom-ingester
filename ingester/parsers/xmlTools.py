@@ -3,6 +3,7 @@
 
 import xml.etree.ElementTree as ET
 import pydicom
+import tools.stringUtil as su
 
 def toStr(val):
     # Right now DA, DT, TM, DSdecimal and PersonName are missing, most of them return str so conversion is "probably" not needed.
@@ -44,7 +45,7 @@ def createSubelementWithAttribute(kw, attr, attrVal, val, parent):
     return temp
 
 
-def insertTupleInXML(fieldTuple, tagTuple, dataSet, XMLnode):
+def insertTupleInXML(fieldTuple, tagTuple, dataSet, XMLnode, anonymizedPatientName):
     for index in range(len(fieldTuple)):
         de = dataSet.get(tagTuple[index])
         if de is not None:
@@ -53,7 +54,14 @@ def insertTupleInXML(fieldTuple, tagTuple, dataSet, XMLnode):
             print("Value :" + toStr(de.value))
             print("Group tag: " + str(de.tag.group))
             print("Element tag: " + str(de.tag.element))"""
-            createSubelementWithAValue(fieldTuple[index], toStr(de.value), XMLnode)
+
+            if(anonymizedPatientName == True):
+                if(fieldTuple[index] == "PatientName"):
+                    createSubelementWithAValue(fieldTuple[index], su.getMaskedString(toStr(de.value)), XMLnode)
+                else:
+                    createSubelementWithAValue(fieldTuple[index], toStr(de.value), XMLnode)
+            else:
+                createSubelementWithAValue(fieldTuple[index], toStr(de.value), XMLnode)
         else:
             createSubelementWithAValue(fieldTuple[index], "", XMLnode)
 

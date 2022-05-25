@@ -107,7 +107,7 @@ def parser(dataSet, obj, root):
     print("Processed: Patient - " + patientID + ", Test - " + studyID + ", Instance - " + instanceID)
 
 
-def addPatientAndTestToXML(dataSet):
+def addPatientAndTestToXML(dataSet, anonymizedPatientName):
     root = ET.Element("Main")
 
     """
@@ -134,7 +134,7 @@ def addPatientAndTestToXML(dataSet):
     # PaceMaker is missing!
     pt = ET.SubElement(root, "Patient")
 
-    EX.insertTupleInXML(patientFieldTuple, patientTagTuple, dataSet, pt)
+    EX.insertTupleInXML(patientFieldTuple, patientTagTuple, dataSet, pt, anonymizedPatientName)
 
     """
         Device information section
@@ -155,7 +155,7 @@ def addPatientAndTestToXML(dataSet):
                         pydicom.tag.Tag(0x0008,0x0050)) 
 
     ts = ET.SubElement(root, "Test")
-    EX.insertTupleInXML(deviceFieldTuple, deviceTagTuple, dataSet, ts)
+    EX.insertTupleInXML(deviceFieldTuple, deviceTagTuple, dataSet, ts, anonymizedPatientName)
 
     """
         Test information section
@@ -173,7 +173,7 @@ def addPatientAndTestToXML(dataSet):
                     pydicom.tag.Tag(0x0008,0x0030),     # StudyTime
                     pydicom.tag.Tag(0x0020,0x000D))     # Study Instance UID    
 
-    EX.insertTupleInXML(testFieldTuple, testTagTuple, dataSet, ts)
+    EX.insertTupleInXML(testFieldTuple, testTagTuple, dataSet, ts, anonymizedPatientName)
 
     return root
 
@@ -429,7 +429,7 @@ def initiateIngestion(dicomPath):
         dataSet = isValidDICOMfile(dicomPath)
 
         if dataSet is not None:
-            xmlFile = addPatientAndTestToXML(dataSet)
+            xmlFile = addPatientAndTestToXML(dataSet, obj["anonymizedPatientName"])
             iuid = EX.toStr(dataSet.get(pydicom.tag.Tag(0x0020, 0x000d)).value)
             parser(dataSet, obj, xmlFile)
             patientID = EX.toStr(dataSet.get(pydicom.tag.Tag(0x0010, 0x0020)).value)
@@ -438,7 +438,7 @@ def initiateIngestion(dicomPath):
         listOfPaths = getPaths(dicomPath)
 
         ds = pydicom.dcmread(listOfPaths[0])
-        xmlFile = addPatientAndTestToXML(ds)
+        xmlFile = addPatientAndTestToXML(ds, obj["anonymizedPatientName"])
         iuid = EX.toStr(ds.get(pydicom.tag.Tag(0x0020, 0x000d)).value)
         patientID = EX.toStr(ds.get(pydicom.tag.Tag(0x0010, 0x0020)).value)
         studyID = EX.toStr(ds.get(pydicom.tag.Tag(0x0020, 0x000d)).value)

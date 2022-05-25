@@ -10,7 +10,7 @@ import numpngw
 import os
 import skvideo.io
 import random
-
+import tools.stringUtil as su
 def regionFlags(element, reference):
   flags = []
 
@@ -123,8 +123,19 @@ def createTiledImage(arrayOfFrames, resolution, numberOfTiles):
 
     return numpy.array(tiledImage, dtype = numpy.uint8)
 
+# def mask_string(s, perc=0.6):
+#     mask_chars = ceil(len(s) * perc)
+#     return f'{"*" * mask_chars}{s[mask_chars:]}'
 
-def generateInfoFile(dicomInfo, folder, scaleFactor = 0):
+# def getPatientName(name):
+#   nameSplited = name.split('^')
+#   maskedName = ''
+#   for item in nameSplited:
+#     maskedName += mask_string(item) + '^'
+#   return maskedName
+
+
+def generateInfoFile(dicomInfo, folder, anonymizedPatientName, scaleFactor = 0):
     obj = {}
     print("Generating info file")
     for baseKey, baseValue in dicomInfo.items():
@@ -137,7 +148,14 @@ def generateInfoFile(dicomInfo, folder, scaleFactor = 0):
                 if isinstance(val, int) | isinstance(val, str):
                     obj[baseKey][key] = val
                 else:
-                    obj[baseKey][key] = EX.toStr(val.value)
+                    if(anonymizedPatientName == True):
+                      if(key == "PatientName"):
+                        obj[baseKey][key] = su.getMaskedString(EX.toStr(val.value))
+                      else:
+                        obj[baseKey][key] = EX.toStr(val.value)
+                    else:
+                      obj[baseKey][key] = EX.toStr(val.value)
+
 
     if scaleFactor != 0:
         obj["Image"]["scaledRows"] =  str(int(dicomInfo["Image"]["rows"].value * scaleFactor))
@@ -305,7 +323,7 @@ def imageToPng(dataSet, obj):
         print(time.time() - start)
 
         print("Done processing image")
-        generateInfoFile(dicomData, patientDir)
+        generateInfoFile(dicomData, patientDir, obj["anonymizedPatientName"])
 
     # Multi-frame
     else:
@@ -367,7 +385,7 @@ def imageToPng(dataSet, obj):
         print("Done processing image")
 
 
-        generateInfoFile(dicomData, patientDir, obj["scaleFactor"])
+        generateInfoFile(dicomData, patientDir, obj["anonymizedPatientName"], obj["scaleFactor"])
 
 
 if __name__ == '__main__':
