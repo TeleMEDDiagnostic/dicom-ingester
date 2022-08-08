@@ -201,8 +201,9 @@ def getIndex(dataSet):
     #numberOfStages =  dataSet.get(pydicom.tag.Tag(0x0008,0x2124)).value
     stageNumber =  returnElementNotNullReturnNum(dataSet.get(pydicom.tag.Tag(0x0008,0x2122)))
     viewNumber = returnElementNotNullReturnNum(dataSet.get(pydicom.tag.Tag(0x0008,0x2128)))
+    acquisitionDateTime =  returnElementNotNullReturnNum(dataSet.get(pydicom.tag.Tag(0x0008,0x002A)))
     stageName =  returnElementNotNullReturnStr(dataSet.get(pydicom.tag.Tag(0x0008,0x2120))).upper()
-
+     
     if stageName == "REST":
       stage = 1
     if stageName == "POST" or stageName == "PEAK":
@@ -211,6 +212,9 @@ def getIndex(dataSet):
       stage = 3 
 
     #xy = (numberOfStages * 1000) + (stageNumber * 100) + (viewNumber * 10) + stage
+
+    if stageName == '-':
+     return acquisitionDateTime
 
     xy = (viewNumber * 100) + (stageNumber * 10) + stage
     return xy
