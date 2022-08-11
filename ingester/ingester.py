@@ -264,8 +264,17 @@ def getPaths(path):
       paths = [os.path.join(path, *instance.ReferencedFileID) for instance in instances]
 
     else:
-        for root, dirs, files in os.walk(path):            
-            ds = pydicom.dcmread(os.path.join(root, files[0]))
+        for root, dirs, files in os.walk(path): 
+            #files.sort(); another option is to find oldest file and use that as current patient 
+            # 
+            oldFile = "";
+            for file in files:
+                if file_age_in_seconds(os.path.join(root, file)) > 60:
+                    oldFile = file;
+                    break;
+
+            #ds = pydicom.dcmread(os.path.join(root, files[0]))
+            ds = pydicom.dcmread(os.path.join(root, oldFile))
             patientID01 = EX.toStr(ds.get(pydicom.tag.Tag(0x0010, 0x0020)).value)
             for file in files:
                 ds2 = pydicom.dcmread(os.path.join(root, file))
