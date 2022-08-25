@@ -22,8 +22,6 @@ import parsers.imageParser as ip
 import parsers.waveforParser as wf
 import parsers.reportParser as sr
 
-
-
 def checkIfSRFile(dataSet):
     modality = pydicom.tag.Tag(0x0008,0x0060)
     if EX.toStr(dataSet.get(modality).value) == "SR":
@@ -36,8 +34,6 @@ def makefolderForMe(folderName):
         os.makedirs(folderName)
     except FileExistsError:
         print("folder already created by another thread ..!")
-
-
 
 def parser(dataSet, obj, root):
   
@@ -176,7 +172,6 @@ def addPatientAndTestToXML(dataSet, anonymizedPatientName):
     EX.insertTupleInXML(testFieldTuple, testTagTuple, dataSet, ts, anonymizedPatientName)
 
     return root
-
 
 def isValidDICOMfile(dicomPath):
     try:
