@@ -307,8 +307,8 @@ def imageToPng(dataSet, obj):
 
     print(dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value)
     colorPlate = 0;
-    if(dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value == 'YBR_FULL'):
-      colorPlate = cv2.COLOR_YUV2RGB
+    if(dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value == 'YBR_FULL'  or dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value == 'YBR_FULL_422'):
+      colorPlate = cv2.COLOR_YCrCb2RGB
     else:
       colorPlate = cv2.COLOR_RGB2BGR
 
@@ -346,8 +346,11 @@ def imageToPng(dataSet, obj):
 
         # generate preview
 
+        # cv2.imwrite(
+        #         patientDir + "/image.png", cv2.cvtColor(dataSet.pixel_array[0], colorPlate), [cv2.IMWRITE_JPEG2000_COMPRESSION_X1000, 5])
         cv2.imwrite(
                 patientDir + "/image.png", cv2.cvtColor(dataSet.pixel_array[0], colorPlate), [cv2.IMWRITE_PNG_COMPRESSION, 5])
+
 
         # generate MP4s
         print("The delay is " + str(delayInMl))
@@ -371,7 +374,7 @@ def imageToPng(dataSet, obj):
         })
 
         for frame in dataSet.pixel_array:
-            if(dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value == 'YBR_FULL'):
+            if(dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value == 'YBR_FULL' or dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value == 'YBR_FULL_422'):             
               writer.writeFrame(cv2.cvtColor(frame, colorPlate))
             else:
               writer.writeFrame(frame)
