@@ -173,22 +173,25 @@ def fillSRData(key, value, unit, parent, currentChild, level, label, anonymizedP
 
             srData["report"]["findingSite"][index -1]["measurements"]
             valueNumber = ''
+            # if(is_number(value)):
+            #     if(unit == 'mm'):
+            #         value = float(value) / 10
+            #         unit = 'cm'
+            #     if(unit == 'mm2'):
+            #         value = float(value) / 100
+            #         unit = 'cm2'
+            #     if(unit == 'mm3'):
+            #         value = float(value) / 1000
+            #         unit = 'cm3'
+            #     if(unit == 'mm/s'):
+            #         value = float(value) / 1000
+            #         unit = 'm/s'
+            #     valueNumber = '{:.2f}'.format(float(value))
+            # else:
+            #     valueNumber = value    
             if(is_number(value)):
-                if(unit == 'mm'):
-                    value = float(value) / 10
-                    unit = 'cm'
-                if(unit == 'mm2'):
-                    value = float(value) / 100
-                    unit = 'cm2'
-                if(unit == 'mm3'):
-                    value = float(value) / 1000
-                    unit = 'cm3'
-                if(unit == 'mm/s'):
-                    value = float(value) / 1000
-                    unit = 'm/s'
-                valueNumber = '{:.2f}'.format(float(value))
-            else:
-                valueNumber = value    
+                valueNumber = value
+            
             
             #key data should come from config and check if any matches 
             global lastFound;  
@@ -277,20 +280,23 @@ def fillSRData(key, value, unit, parent, currentChild, level, label, anonymizedP
             if(unit == '' ):
                 unit = 'no units'
            
+            # if(is_number(value) ):
+            #     if(unit == 'mm'):
+            #         value = float(value) / 10
+            #         unit = 'cm'
+            #     if(unit == 'mm2'):
+            #         value = float(value) / 100
+            #         unit = 'cm2'
+            #     if(unit == 'mm3'):
+            #         value = float(value) / 1000
+            #         unit = 'cm3'
+            #     if(unit == 'mm/s'):
+            #         value = float(value) / 10
+            #         unit = 'cm/s'
+            #     valueNumber = '{:.2f}'.format(float(value))  
             if(is_number(value) ):
-                if(unit == 'mm'):
-                    value = float(value) / 10
-                    unit = 'cm'
-                if(unit == 'mm2'):
-                    value = float(value) / 100
-                    unit = 'cm2'
-                if(unit == 'mm3'):
-                    value = float(value) / 1000
-                    unit = 'cm3'
-                if(unit == 'mm/s'):
-                    value = float(value) / 10
-                    unit = 'cm/s'
-                valueNumber = '{:.2f}'.format(float(value))           
+                valueNumber = value;
+
                 srData["report"]["userDefined"].append({"Key": lastUserDefinedKey.replace("'", ""), "Value": '{:.2f}'.format(float(valueNumber)), "Unit": unit})
         
 
