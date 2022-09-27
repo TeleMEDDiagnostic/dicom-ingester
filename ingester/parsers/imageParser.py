@@ -308,7 +308,7 @@ def imageToPng(dataSet, obj):
     print(dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value)
     colorPlate = 0;
     if(dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value == 'YBR_FULL'  or dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value == 'YBR_FULL_422'):
-      colorPlate = cv2.COLOR_YCrCb2RGB
+      colorPlate = cv2.COLOR_YCrCb2BGR
     else:
       colorPlate = cv2.COLOR_RGB2BGR
 

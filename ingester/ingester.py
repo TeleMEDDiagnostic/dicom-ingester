@@ -78,8 +78,10 @@ def parser(dataSet, obj, root):
         #TODO(Josue) The way I check if \xff\xc3 is in PixelData should consider \xff\xda. Right now it doesn't (it works though)
         print(dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value)
         if ((dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value == "RGB" and b'\xff\xc3' in dataSet.PixelData) or dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value == "MONOCHROME2" ) and EX.toStr(dataSet.get(modality).value) != "SR":
-            oldDcm = "old" + str(time.time()) + ".dcm" 
-            ljpeg = "ljpeg" + str(time.time()) + ".dcm"
+            
+            fiuid = EX.toStr(dataSet.get(pydicom.tag.Tag(0x0020, 0x000d)).value).replace('.', '_');
+            oldDcm = "old" + str(time.time()) + fiuid + ".dcm" 
+            ljpeg = "ljpeg" + str(time.time()) + fiuid +".dcm"
             pydicom.write_file(oldDcm, dataSet, True)
             subprocess.run(["gdcmconv", "--raw", oldDcm, ljpeg])
             ljpegDataSet = pydicom.dcmread(ljpeg)
@@ -251,6 +253,7 @@ def file_age_in_seconds(pathname):
 
 def getPaths(path):
     paths = []
+    print("reading the path content")
 
     if os.path.isfile(os.path.join(path, "DICOMDIR")):
       dicomdirFile = isValidDICOMfile(os.path.join(path, "DICOMDIR"))
@@ -262,6 +265,7 @@ def getPaths(path):
         for root, dirs, files in os.walk(path): 
             #files.sort(); another option is to find oldest file and use that as current patient 
             # 
+            print("since there no dicomdir using os walk ")
             oldFile = "";
             for file in files:
                 if file_age_in_seconds(os.path.join(root, file)) > 60:
@@ -283,6 +287,8 @@ def getPaths(path):
 
 def getListOfFiles(path):
     paths = []
+
+    print("get list files in the folder")
     
     for root, dirs, files in os.walk(path):            
         for file in files:
@@ -439,6 +445,7 @@ def initiateIngestion(dicomPath):
             patientID = EX.toStr(dataSet.get(pydicom.tag.Tag(0x0010, 0x0020)).value)
 
     elif os.path.isdir(dicomPath) and len(os.listdir(dicomPath)) != 0:
+        
         listOfPaths = getPaths(dicomPath)
 
         ds = pydicom.dcmread(listOfPaths[0])
