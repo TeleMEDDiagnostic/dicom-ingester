@@ -79,17 +79,19 @@ def parser(dataSet, obj, root):
         print(dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value)
         if ((dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value == "RGB" and b'\xff\xc3' in dataSet.PixelData) or dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value == "MONOCHROME2" ) and EX.toStr(dataSet.get(modality).value) != "SR":
             
-            fiuid = EX.toStr(dataSet.get(pydicom.tag.Tag(0x0020, 0x000d)).value).replace('.', '_');
-            oldDcm = "old" + str(time.time()) + fiuid + ".dcm" 
-            ljpeg = "ljpeg" + str(time.time()) + fiuid +".dcm"
-            pydicom.write_file(oldDcm, dataSet, True)
-            subprocess.run(["gdcmconv", "--raw", oldDcm, ljpeg])
-            ljpegDataSet = pydicom.dcmread(ljpeg)
-            ip.imageToPng(ljpegDataSet, obj)
-            # subprocess.run(["rm", oldDcm])
-            # subprocess.run(["rm", ljpeg])
-            subprocess.run(["del", oldDcm], shell=True)
-            subprocess.run(["del", ljpeg], shell=True)
+            # fiuid = EX.toStr(dataSet.get(pydicom.tag.Tag(0x0020, 0x000d)).value).replace('.', '_');
+            # oldDcm = "old" + str(time.time()) + fiuid + ".dcm" 
+            # ljpeg = "ljpeg" + str(time.time()) + fiuid +".dcm"
+            # pydicom.write_file(oldDcm, dataSet, True)
+            # subprocess.run(["gdcmconv", "--raw", oldDcm, ljpeg])
+            # ljpegDataSet = pydicom.dcmread(ljpeg)
+            # ip.imageToPng(ljpegDataSet, obj)
+            # # subprocess.run(["rm", oldDcm])
+            # # subprocess.run(["rm", ljpeg])
+            # subprocess.run(["del", oldDcm], shell=True)
+            # subprocess.run(["del", ljpeg], shell=True)
+
+            ip.imageToPng(dataSet, obj)
 
         else:
             ip.imageToPng(dataSet, obj)

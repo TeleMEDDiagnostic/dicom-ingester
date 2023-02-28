@@ -384,12 +384,12 @@ def imageToPng(dataSet, obj):
         print("Generated MP4 in " + str(time.time() - start))
 
         # generate thumbnails
-        start = time.time()
-        cv2.imwrite(
-                patientDir + "/thumbnails.png", cv2.UMat(
-                    cv2.cvtColor(createTiledImage(newArray, [int(dicomData["Image"]["rows"].value  * obj['scaleFactor']), int(dicomData["Image"]["columns"].value * obj['scaleFactor'])], dicomData["Image"]["numberOfFrames"].value),colorPlate)))
-        print(time.time() - start)        
-        print("Done processing image")
+        # start = time.time()
+        # cv2.imwrite(
+        #         patientDir + "/thumbnails.png", cv2.UMat(
+        #             cv2.cvtColor(createTiledImage(newArray, [int(dicomData["Image"]["rows"].value  * obj['scaleFactor']), int(dicomData["Image"]["columns"].value * obj['scaleFactor'])], dicomData["Image"]["numberOfFrames"].value),colorPlate)))
+        # print(time.time() - start)        
+        # print("Done processing image")
 
 
         generateInfoFile(dicomData, patientDir, obj["anonymizedPatientName"], obj["scaleFactor"])
