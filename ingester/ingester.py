@@ -269,7 +269,7 @@ def getPaths(path):
             # 
             print("since there no dicomdir using os walk ")
             oldFile = "";
-            for file in files:
+            for file in files: 
                 if file_age_in_seconds(os.path.join(root, file)) > 60:
                     oldFile = file;
                     break;
