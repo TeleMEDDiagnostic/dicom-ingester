@@ -406,13 +406,14 @@ def extractReport(dataSet, obj):
 
 
 
-
-        print("Length of content sequence " + str(len(dataSet.get(pydicom.tag.Tag(0x0040, 0xa730)).value)))
-        print("Type of content sequence " + str(type(dataSet.get(pydicom.tag.Tag(0x0040, 0xa730)).value[0])))
+        if dataSet.get(pydicom.tag.Tag(0x0040, 0xa730)) is not None:
+            print("Length of content sequence " + str(len(dataSet.get(pydicom.tag.Tag(0x0040, 0xa730)).value)))
+            print("Type of content sequence " + str(type(dataSet.get(pydicom.tag.Tag(0x0040, 0xa730)).value[0])))
         counter = 0
         numberOfElements = []
         numberOfElements.append(0)
-        processChild(dataSet.get(pydicom.tag.Tag(0x0040, 0xa730)).value, 0, "patient", numberOfElements, "", obj["anonymizedPatientName"])
+        if dataSet.get(pydicom.tag.Tag(0x0040, 0xa730)) is not None:
+            processChild(dataSet.get(pydicom.tag.Tag(0x0040, 0xa730)).value, 0, "patient", numberOfElements, "", obj["anonymizedPatientName"])
 
         print("Number of elements " + str(numberOfElements[0]))
         
