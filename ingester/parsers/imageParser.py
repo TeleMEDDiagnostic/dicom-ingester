@@ -307,10 +307,12 @@ def imageToPng(dataSet, obj):
 
     print(dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value)
     colorPlate = 0;
-    if(dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value == 'YBR_FULL'  or dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value == 'YBR_FULL_422'):
-      colorPlate = cv2.COLOR_YCrCb2RGB #cv2.COLOR_YCrCb2BGR
-    else:
-      colorPlate = cv2.COLOR_RGB2BGR
+    # if(dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value == 'YBR_FULL'  or dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value == 'YBR_FULL_422'):
+    #   colorPlate = cv2.COLOR_YCrCb2RGB #cv2.COLOR_YCrCb2BGR
+    # else:
+    #   colorPlate = cv2.COLOR_RGB2BGR
+
+    colorPlate = obj["singleFrame_colorPlate"];
 
 
     print(colorPlate);
@@ -332,10 +334,12 @@ def imageToPng(dataSet, obj):
     # Multi-frame
     else:
         
-        if(dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value == 'YBR_FULL'  or dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value == 'YBR_FULL_422'):
-          colorPlate =  cv2.COLOR_YUV2RGB #cv2.COLOR_YCrCb2BGR
-        else:
-          colorPlate = cv2.COLOR_RGB2BGR
+        # if(dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value == 'YBR_FULL'  or dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value == 'YBR_FULL_422'):
+        #   colorPlate =  cv2.COLOR_YUV2RGB #cv2.COLOR_YCrCb2BGR
+        # else:
+        #   colorPlate = cv2.COLOR_RGB2BGR
+
+        colorPlate = obj["thumnNail_colorPlate"]
           
         print("Multi-frame")
         print(len(dataSet.PixelData))
@@ -379,8 +383,11 @@ def imageToPng(dataSet, obj):
                                    # other options see https://trac.ffmpeg.org/wiki/Encode/H.264
         })
 
+        colorPlate = obj["multiFrame_colorPlate"]
+
         for frame in dataSet.pixel_array:
-            if(dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value == 'YBR_FULL' or dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value == 'YBR_FULL_422'):             
+            #if(dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value == 'YBR_FULL' or dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value == 'YBR_FULL_422'):
+            if(colorPlate != 0):             
               writer.writeFrame(cv2.cvtColor(frame, colorPlate))
             else:
               writer.writeFrame(frame)

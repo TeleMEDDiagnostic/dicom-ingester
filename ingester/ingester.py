@@ -277,10 +277,12 @@ def getPaths(path):
             #ds = pydicom.dcmread(os.path.join(root, files[0]))
             ds = pydicom.dcmread(os.path.join(root, oldFile))
             patientID01 = EX.toStr(ds.get(pydicom.tag.Tag(0x0010, 0x0020)).value)
+            currentStudyID01 = EX.toStr(ds.get(pydicom.tag.Tag(0x0020, 0x000d)).value)
             for file in files:
                 ds2 = pydicom.dcmread(os.path.join(root, file))
                 patientIDCurrent = EX.toStr(ds2.get(pydicom.tag.Tag(0x0010, 0x0020)).value)
-                if(patientID01 == patientIDCurrent):
+                currentStudyID = EX.toStr(ds2.get(pydicom.tag.Tag(0x0020, 0x000d)).value)
+                if(patientID01 == patientIDCurrent and currentStudyID01 == currentStudyID):
                     if file_age_in_seconds(os.path.join(root, file)) > 60:
                         paths.append(os.path.join(root, file))
                    

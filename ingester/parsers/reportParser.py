@@ -63,35 +63,39 @@ def processChild(dataSet, level, parent, elements, child, anonymizedPatientName)
 
         # TODO(Josue) this one can have more than one, fix this
         elif i.get(pydicom.tag.Tag(0x0040, 0xa040)).value == "NUM":
-            measuredValueDataSet = i.get(pydicom.tag.Tag(0x0040, 0xa300)).value[0]
-            measuredUnitDataSet = measuredValueDataSet.get(pydicom.tag.Tag(0x0040, 0x08ea)).value[0]
-            conceptNameCodeDataSet = i.get(pydicom.tag.Tag(0x0040, 0xa043)).value[0]            
-            value += EX.toStr(conceptNameCodeDataSet.get(pydicom.tag.Tag(0x0008, 0x0104)).value) + ": " + EX.toStr(measuredValueDataSet.get(pydicom.tag.Tag(0x0040, 0xa30a)).value) + " " + EX.toStr(measuredUnitDataSet.get(pydicom.tag.Tag(0x0008, 0x0104)).value)
-            key = EX.toStr(conceptNameCodeDataSet.get(pydicom.tag.Tag(0x0008, 0x0104)).value)
-            val = EX.toStr(measuredValueDataSet.get(pydicom.tag.Tag(0x0040, 0xa30a)).value) 
-            unit = EX.toStr(measuredUnitDataSet.get(pydicom.tag.Tag(0x0008, 0x0104)).value)
+            if len(i.get(pydicom.tag.Tag(0x0040, 0xa300)).value) > 0:
+                measuredValueDataSet = i.get(pydicom.tag.Tag(0x0040, 0xa300)).value[0]
+                measuredUnitDataSet = measuredValueDataSet.get(pydicom.tag.Tag(0x0040, 0x08ea)).value[0]
+                conceptNameCodeDataSet = i.get(pydicom.tag.Tag(0x0040, 0xa043)).value[0]            
+                value += EX.toStr(conceptNameCodeDataSet.get(pydicom.tag.Tag(0x0008, 0x0104)).value) + ": " + EX.toStr(measuredValueDataSet.get(pydicom.tag.Tag(0x0040, 0xa30a)).value) + " " + EX.toStr(measuredUnitDataSet.get(pydicom.tag.Tag(0x0008, 0x0104)).value)
+                key = EX.toStr(conceptNameCodeDataSet.get(pydicom.tag.Tag(0x0008, 0x0104)).value)
+                val = EX.toStr(measuredValueDataSet.get(pydicom.tag.Tag(0x0040, 0xa30a)).value) 
+                unit = EX.toStr(measuredUnitDataSet.get(pydicom.tag.Tag(0x0008, 0x0104)).value)
 
         elif i.get(pydicom.tag.Tag(0x0040, 0xa040)).value == "CODE":
-            conceptCodeDataSet = i.get(pydicom.tag.Tag(0x0040, 0xa168)).value[0]
-            conceptNameCodeDataSet = i.get(pydicom.tag.Tag(0x0040, 0xa043)).value[0]
-            value += EX.toStr(conceptNameCodeDataSet.get(pydicom.tag.Tag(0x0008, 0x0104)).value) + ": " + EX.toStr(conceptCodeDataSet.get(pydicom.tag.Tag(0x0008, 0x0104)).value)
-            key = EX.toStr(conceptNameCodeDataSet.get(pydicom.tag.Tag(0x0008, 0x0104)).value)
-            val = EX.toStr(conceptCodeDataSet.get(pydicom.tag.Tag(0x0008, 0x0104)).value)
-            unit = ""
+            if len(i.get(pydicom.tag.Tag(0x0040, 0xa168)).value) > 0:
+                conceptCodeDataSet = i.get(pydicom.tag.Tag(0x0040, 0xa168)).value[0]
+                conceptNameCodeDataSet = i.get(pydicom.tag.Tag(0x0040, 0xa043)).value[0]
+                value += EX.toStr(conceptNameCodeDataSet.get(pydicom.tag.Tag(0x0008, 0x0104)).value) + ": " + EX.toStr(conceptCodeDataSet.get(pydicom.tag.Tag(0x0008, 0x0104)).value)
+                key = EX.toStr(conceptNameCodeDataSet.get(pydicom.tag.Tag(0x0008, 0x0104)).value)
+                val = EX.toStr(conceptCodeDataSet.get(pydicom.tag.Tag(0x0008, 0x0104)).value)
+                unit = ""
 
         elif i.get(pydicom.tag.Tag(0x0040, 0xa040)).value == "DATETIME":
-            conceptNameCodeDataSet = i.get(pydicom.tag.Tag(0x0040, 0xa043)).value[0]
-            value += EX.toStr(conceptNameCodeDataSet.get(pydicom.tag.Tag(0x0008, 0x0104)).value) + ": " + EX.toStr(i.get(pydicom.tag.Tag(0x0040, 0xa120)).value)
-            key = EX.toStr(conceptNameCodeDataSet.get(pydicom.tag.Tag(0x0008, 0x0104)).value)
-            val = EX.toStr(i.get(pydicom.tag.Tag(0x0040, 0xa120)).value)
-            unit = ""
+            if len(i.get(pydicom.tag.Tag(0x0040, 0xa043)).value) > 0:
+                conceptNameCodeDataSet = i.get(pydicom.tag.Tag(0x0040, 0xa043)).value[0]
+                value += EX.toStr(conceptNameCodeDataSet.get(pydicom.tag.Tag(0x0008, 0x0104)).value) + ": " + EX.toStr(i.get(pydicom.tag.Tag(0x0040, 0xa120)).value)
+                key = EX.toStr(conceptNameCodeDataSet.get(pydicom.tag.Tag(0x0008, 0x0104)).value)
+                val = EX.toStr(i.get(pydicom.tag.Tag(0x0040, 0xa120)).value)
+                unit = ""
 
         elif i.get(pydicom.tag.Tag(0x0040, 0xa040)).value == "DATE":
-            conceptNameCodeDataSet = i.get(pydicom.tag.Tag(0x0040, 0xa043)).value[0]
-            value += EX.toStr(conceptNameCodeDataSet.get(pydicom.tag.Tag(0x0008, 0x0104)).value) + ": " + EX.toStr(i.get(pydicom.tag.Tag(0x0040, 0xa121)).value)
-            key = EX.toStr(conceptNameCodeDataSet.get(pydicom.tag.Tag(0x0008, 0x0104)).value)
-            val = EX.toStr(i.get(pydicom.tag.Tag(0x0040, 0xa121)).value)
-            unit = ""
+            if len(i.get(pydicom.tag.Tag(0x0040, 0xa043)).value) > 0:
+                conceptNameCodeDataSet = i.get(pydicom.tag.Tag(0x0040, 0xa043)).value[0]
+                value += EX.toStr(conceptNameCodeDataSet.get(pydicom.tag.Tag(0x0008, 0x0104)).value) + ": " + EX.toStr(i.get(pydicom.tag.Tag(0x0040, 0xa121)).value)
+                key = EX.toStr(conceptNameCodeDataSet.get(pydicom.tag.Tag(0x0008, 0x0104)).value)
+                val = EX.toStr(i.get(pydicom.tag.Tag(0x0040, 0xa121)).value)
+                unit = ""
             
         elif i.get(pydicom.tag.Tag(0x0040, 0xa040)).value == "UIDREF":
             value += EX.toStr(i.get(pydicom.tag.Tag(0x0040, 0xa124)).value)

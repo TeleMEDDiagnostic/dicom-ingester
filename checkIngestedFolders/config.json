@@ -1,6 +1,9 @@
 {
     "folderForFolderToCheck": "D:\\FolderToCheck",
     "processedEchoFolder" : "D:\\processed/", 
-    "incomingFolder" : "C:\\echos\\folderMoveTest"
+    "incomingFolder" : "C:\\echos\\folderMoveTest",
+    "singleFrame_colorPlate": 38, 
+    "multiFrame_colorPlate": 38,
+    "thumnNail_colorPlate": 38
 
 }
