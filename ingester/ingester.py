@@ -22,6 +22,8 @@ import parsers.imageParser as ip
 import parsers.waveforParser as wf
 import parsers.reportParser as sr
 
+
+
 def checkIfSRFile(dataSet):
     modality = pydicom.tag.Tag(0x0008,0x0060)
     if EX.toStr(dataSet.get(modality).value) == "SR":
@@ -34,6 +36,8 @@ def makefolderForMe(folderName):
         os.makedirs(folderName)
     except FileExistsError:
         print("folder already created by another thread ..!")
+
+
 
 def parser(dataSet, obj, root):
   
@@ -58,6 +62,7 @@ def parser(dataSet, obj, root):
     #     SHT.copy2(folderForTemplate, folderForImporter + "/" + "report.json")
 
     # ECG
+    #gdcm_path = r"C:\tools\GDCM\bin\gdcmconv.exe";
     if EX.toStr(dataSet.get(modality).value) == "ECG":
         waveformSequence = 0
         waveformAnnotationDE = dataSet.get(pydicom.tag.Tag(0x0040, 0xb020))
@@ -72,26 +77,25 @@ def parser(dataSet, obj, root):
             wf.waveformParser(waveformSequence, waveformAnnotationDE, root)
         else:
             print("The file doesn't have a waveform or a waveform annotation")
+            
+   
 
     # Ultrasound
-    elif EX.toStr(dataSet.get(modality).value) in ["US", "IVUS", ]:
+    elif EX.toStr(dataSet.get(modality).value) in ["US", "IVUS",]:
         #TODO(Josue) The way I check if \xff\xc3 is in PixelData should consider \xff\xda. Right now it doesn't (it works though)
         print(dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value)
         if ((dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value == "RGB" and b'\xff\xc3' in dataSet.PixelData) or dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value == "MONOCHROME2" ) and EX.toStr(dataSet.get(modality).value) != "SR":
-            
-            # fiuid = EX.toStr(dataSet.get(pydicom.tag.Tag(0x0020, 0x000d)).value).replace('.', '_');
-            # oldDcm = "old" + str(time.time()) + fiuid + ".dcm" 
-            # ljpeg = "ljpeg" + str(time.time()) + fiuid +".dcm"
-            # pydicom.write_file(oldDcm, dataSet, True)
-            # subprocess.run(["gdcmconv", "--raw", oldDcm, ljpeg])
-            # ljpegDataSet = pydicom.dcmread(ljpeg)
-            # ip.imageToPng(ljpegDataSet, obj)
-            # # subprocess.run(["rm", oldDcm])
-            # # subprocess.run(["rm", ljpeg])
-            # subprocess.run(["del", oldDcm], shell=True)
-            # subprocess.run(["del", ljpeg], shell=True)
-
-            ip.imageToPng(dataSet, obj)
+            oldDcm = "old" + str(time.time()) + ".dcm" 
+            ljpeg = "ljpeg" + str(time.time()) + ".dcm"
+            pydicom.write_file(oldDcm, dataSet, True)
+            subprocess.run(["gdcmconv", "--raw", oldDcm, ljpeg])
+            #subprocess.run([gdcm_path, "--raw", oldDcm, ljpeg])
+            ljpegDataSet = pydicom.dcmread(ljpeg)
+            ip.imageToPng(ljpegDataSet, obj)
+            # subprocess.run(["rm", oldDcm])
+            # subprocess.run(["rm", ljpeg])
+            subprocess.run(["del", oldDcm], shell=True)
+            subprocess.run(["del", ljpeg], shell=True)
 
         else:
             ip.imageToPng(dataSet, obj)
@@ -177,6 +181,7 @@ def addPatientAndTestToXML(dataSet, anonymizedPatientName):
 
     return root
 
+
 def isValidDICOMfile(dicomPath):
     try:
         dataSet = pydicom.dcmread(dicomPath)
@@ -255,7 +260,6 @@ def file_age_in_seconds(pathname):
 
 def getPaths(path):
     paths = []
-    print("reading the path content")
 
     if os.path.isfile(os.path.join(path, "DICOMDIR")):
       dicomdirFile = isValidDICOMfile(os.path.join(path, "DICOMDIR"))
@@ -264,25 +268,13 @@ def getPaths(path):
       paths = [os.path.join(path, *instance.ReferencedFileID) for instance in instances]
 
     else:
-        for root, dirs, files in os.walk(path): 
-            #files.sort(); another option is to find oldest file and use that as current patient 
-            # 
-            print("since there no dicomdir using os walk ")
-            oldFile = "";
-            for file in files: 
-                if file_age_in_seconds(os.path.join(root, file)) > 60:
-                    oldFile = file;
-                    break;
-
-            #ds = pydicom.dcmread(os.path.join(root, files[0]))
-            ds = pydicom.dcmread(os.path.join(root, oldFile))
+        for root, dirs, files in os.walk(path):            
+            ds = pydicom.dcmread(os.path.join(root, files[0]))
             patientID01 = EX.toStr(ds.get(pydicom.tag.Tag(0x0010, 0x0020)).value)
-            currentStudyID01 = EX.toStr(ds.get(pydicom.tag.Tag(0x0020, 0x000d)).value)
             for file in files:
                 ds2 = pydicom.dcmread(os.path.join(root, file))
                 patientIDCurrent = EX.toStr(ds2.get(pydicom.tag.Tag(0x0010, 0x0020)).value)
-                currentStudyID = EX.toStr(ds2.get(pydicom.tag.Tag(0x0020, 0x000d)).value)
-                if(patientID01 == patientIDCurrent and currentStudyID01 == currentStudyID):
+                if(patientID01 == patientIDCurrent):
                     if file_age_in_seconds(os.path.join(root, file)) > 60:
                         paths.append(os.path.join(root, file))
                    
@@ -291,8 +283,6 @@ def getPaths(path):
 
 def getListOfFiles(path):
     paths = []
-
-    print("get list files in the folder")
     
     for root, dirs, files in os.walk(path):            
         for file in files:
@@ -350,6 +340,7 @@ def moveTestToFTPFolder(pFolder, tFolder, obj):
         directory_contents = os.listdir(scre)
         for item in directory_contents:
             sub_items = os.listdir(obj['folderForPatients'] + "/" + pFolder + "/" + tFolder + "/" + item)
+            print("subfolder -------------------------------------------", item)
             if(len(sub_items) > 0):
                 time.sleep(2)
                 for file in sub_items:
@@ -360,7 +351,8 @@ def moveTestToFTPFolder(pFolder, tFolder, obj):
                     else:                    
                         SHT.move(imageFolder, destFTP)
                     createFileForFolderCheckProcess(destFTP, file, obj)
-                break
+               
+            
 
 
         #subprocess.run([scre + " " + dest], shell=True)
@@ -449,7 +441,6 @@ def initiateIngestion(dicomPath):
             patientID = EX.toStr(dataSet.get(pydicom.tag.Tag(0x0010, 0x0020)).value)
 
     elif os.path.isdir(dicomPath) and len(os.listdir(dicomPath)) != 0:
-        
         listOfPaths = getPaths(dicomPath)
 
         ds = pydicom.dcmread(listOfPaths[0])
