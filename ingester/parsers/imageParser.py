@@ -8,7 +8,10 @@ import json
 import cv2
 import numpngw
 import os
-import skvideo.io
+import numpy as np
+#import skvideo.io
+import imageio.v3 as iio
+import imageio
 import random
 import tools.stringUtil as su
 def regionFlags(element, reference):
@@ -240,6 +243,57 @@ def returnElementNotNullReturnStr(elem):
     return elem.value
   return EX.toStr('-')
 
+COLOR_MAP = {
+    "GRAY2RGB": cv2.COLOR_GRAY2RGB,
+    "BGR2RGB": cv2.COLOR_BGR2RGB,
+    "BGRA2RGB": cv2.COLOR_BGRA2RGB,
+}
+
+def safe_cvt(frame, colorPlate=None):
+    if frame is None:
+        return None
+    
+
+    frame = np.asarray(frame)
+
+    # AUTO mode (recommended)
+    if colorPlate is None or colorPlate == "AUTO":
+        if frame.ndim == 2:
+            return cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
+
+        if frame.ndim == 3:
+            if frame.shape[2] == 1:
+                return cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
+            if frame.shape[2] == 3:
+                return cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            if frame.shape[2] == 4:
+                return cv2.cvtColor(frame, cv2.COLOR_BGRA2RGB)
+
+        raise ValueError(f"AUTO conversion failed for shape {frame.shape}")
+
+    # Explicit mode
+    if isinstance(colorPlate, str):
+        if colorPlate not in COLOR_MAP:
+            raise ValueError(f"Unsupported colorPlate '{colorPlate}'")
+
+        required_channels = {
+            "GRAY2RGB": 1,
+            "BGR2RGB": 3,
+            "BGRA2RGB": 4,
+        }[colorPlate]
+
+        if frame.ndim == 3 and frame.shape[2] != required_channels:
+            raise ValueError(
+                f"{colorPlate} requires {required_channels} channels, "
+                f"got {frame.shape}"
+            )
+
+        if frame.ndim == 2 and required_channels != 1:
+            raise ValueError(f"{colorPlate} requires multi-channel input")
+
+        return cv2.cvtColor(frame, COLOR_MAP[colorPlate])
+
+    raise TypeError("colorPlate must be a string or None")
 
 
 
@@ -324,8 +378,25 @@ def imageToPng(dataSet, obj):
         start = time.time()
         #For YBR_Full = cv2.COLOR_YUV2RGB
        
+        # cv2.imwrite(
+        #         patientDir + "/image.png", cv2.cvtColor(dataSet.pixel_array, colorPlate), [cv2.IMWRITE_PNG_COMPRESSION, 5])
+        
+        frame = dataSet.pixel_array
+
+        if frame.ndim == 2 or frame.shape[-1] == 1:
+          output = frame
+        elif colorPlate != 0:
+          output = safe_cvt(frame, colorPlate); #cv2.cvtColor(frame, colorPlate)
+        else:
+          output = frame
+
         cv2.imwrite(
-                patientDir + "/image.png", cv2.cvtColor(dataSet.pixel_array, colorPlate), [cv2.IMWRITE_PNG_COMPRESSION, 5])
+          patientDir + "/image.png",
+          output,
+          [cv2.IMWRITE_PNG_COMPRESSION, 5]
+        )
+
+
         print(time.time() - start)
 
         print("Done processing image")
@@ -339,7 +410,7 @@ def imageToPng(dataSet, obj):
         # else:
         #   colorPlate = cv2.COLOR_RGB2BGR
 
-        colorPlate = obj["thumnNail_colorPlate"]
+        #colorPlate = obj["thumnNail_colorPlate"]
           
         print("Multi-frame")
         print(len(dataSet.PixelData))
@@ -358,8 +429,21 @@ def imageToPng(dataSet, obj):
 
         # cv2.imwrite(
         #         patientDir + "/image.png", cv2.cvtColor(dataSet.pixel_array[0], colorPlate), [cv2.IMWRITE_JPEG2000_COMPRESSION_X1000, 5])
+        # cv2.imwrite(
+        #         patientDir + "/image.png", cv2.cvtColor(dataSet.pixel_array[0], colorPlate), [cv2.IMWRITE_PNG_COMPRESSION, 5])
+        frame = dataSet.pixel_array
+
+        if frame.ndim == 2 or frame.shape[-1] == 1:
+            output = frame
+        elif colorPlate != 0:
+            output = safe_cvt(frame, colorPlate); #cv2.cvtColor(frame, colorPlate)
+        else:
+            output = frame
+
         cv2.imwrite(
-                patientDir + "/image.png", cv2.cvtColor(dataSet.pixel_array[0], colorPlate), [cv2.IMWRITE_PNG_COMPRESSION, 5])
+            patientDir + "/image.png",
+            output,
+            [cv2.IMWRITE_PNG_COMPRESSION, 5])
 
 
         # generate MP4s
@@ -375,22 +459,46 @@ def imageToPng(dataSet, obj):
         #                            # other options see https://trac.ffmpeg.org/wiki/Encode/H.264
         # })
 
-        writer = skvideo.io.FFmpegWriter(patientDir + "/image.mp4", outputdict={
-            '-vcodec': 'libx264',  # use the h.264 codec
-            '-pix_fmt': 'yuv420p', # use a lower-bitrate encoding to support Firefox
-            '-crf': '15',          # constant rate factor between 0 (lossless) and 52 (worst)
-            '-preset':'veryslow'   # the slower the better compression, in princple, try 
-                                   # other options see https://trac.ffmpeg.org/wiki/Encode/H.264
-        })
+        # writer = skvideo.io.FFmpegWriter(patientDir + "/image.mp4", outputdict={
+        #     '-vcodec': 'libx264',  # use the h.264 codec
+        #     '-pix_fmt': 'yuv420p', # use a lower-bitrate encoding to support Firefox
+        #     '-crf': '15',          # constant rate factor between 0 (lossless) and 52 (worst)
+        #     '-preset':'veryslow'   # the slower the better compression, in princple, try 
+        #                            # other options see https://trac.ffmpeg.org/wiki/Encode/H.264
+        # })
+
+        writer = imageio.get_writer(
+          patientDir + "/image.mp4",
+          fps=25,
+          codec="libx264",
+          pixelformat="yuv420p",
+          ffmpeg_params=[
+              "-crf", "15",
+              "-preset", "veryslow"
+          ])
 
         colorPlate = obj["multiFrame_colorPlate"]
 
+        # for frame in dataSet.pixel_array:
+        #     #if(dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value == 'YBR_FULL' or dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value == 'YBR_FULL_422'):
+        #     if(colorPlate != 0):             
+        #       writer.writeFrame(cv2.cvtColor(frame, colorPlate))
+        #     else:
+        #       writer.writeFrame(frame)
+
+        # for frame in dataSet.pixel_array:
+        #   if colorPlate != 0:
+        #       writer.append_data(cv2.cvtColor(frame, colorPlate))
+        #   else:
+        #       writer.append_data(frame)
         for frame in dataSet.pixel_array:
-            #if(dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value == 'YBR_FULL' or dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value == 'YBR_FULL_422'):
-            if(colorPlate != 0):             
-              writer.writeFrame(cv2.cvtColor(frame, colorPlate))
-            else:
-              writer.writeFrame(frame)
+          if frame.ndim == 2 or frame.shape[-1] == 1:
+              writer.append_data(frame)
+          elif colorPlate != 0:
+              writer.append_data(safe_cvt(frame, colorPlate))
+          else:
+              writer.append_data(frame)
+
 
         writer.close()
 

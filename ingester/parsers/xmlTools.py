@@ -8,7 +8,7 @@ import tools.stringUtil as su
 def toStr(val):
     # Right now DA, DT, TM, DSdecimal and PersonName are missing, most of them return str so conversion is "probably" not needed.
     result = val
-    if isinstance(val, pydicom.valuerep.PersonName) or isinstance(val, pydicom.valuerep.PersonNameUnicode):
+    if isinstance(val, pydicom.valuerep.PersonName): #or isinstance(val, pydicom.valuerep.PersonNameUnicode):
         # https://stackoverflow.com/questions/606191/convert-bytes-to-a-string
         # theName = theValue.encode().decode("cp437", 'backslashreplace') <-- consider this if there are problems with encoding
  

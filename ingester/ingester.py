@@ -31,6 +31,40 @@ def checkIfSRFile(dataSet):
     else:
         return False
 
+
+import os
+import re
+from pathlib import Path
+
+# Windows reserved filenames
+_RESERVED_NAMES = {
+    "CON", "PRN", "AUX", "NUL",
+    *(f"COM{i}" for i in range(1, 10)),
+    *(f"LPT{i}" for i in range(1, 10))
+}
+
+def sanitize_folder_name(folder_name):
+    folder_name = Path(folder_name).name
+    folder_name = re.sub(r'[<>:"/\\|?*]', "_", folder_name)
+    folder_name = re.sub(r'[\x00-\x1F]', "", folder_name)
+    folder_name = folder_name.rstrip(" .")
+
+    if folder_name.upper() in _RESERVED_NAMES:
+        folder_name = "_" + folder_name
+
+    return folder_name or "NewFolder"
+
+
+# def makefolderForMe(folder_name):
+#     safe_folder = sanitize_folder_name(folder_name)
+
+#     try:
+#         os.makedirs(safe_folder)
+#     except FileExistsError as ex:
+#         print("folder already created by another thread ..!")
+
+    #return safe_folder
+
 def makefolderForMe(folderName):
     try:
         os.makedirs(folderName)
@@ -42,13 +76,14 @@ def makefolderForMe(folderName):
 def parser(dataSet, obj, root):
   
     modality = pydicom.tag.Tag(0x0008,0x0060)
+    defaultModality = obj["modality"]
 
     patientID = EX.toStr(dataSet.get(pydicom.tag.Tag(0x0010, 0x0020)).value)
     studyID = EX.toStr(dataSet.get(pydicom.tag.Tag(0x0020, 0x000d)).value)
     seriesID = EX.toStr(dataSet.get(pydicom.tag.Tag(0x0020, 0x000e)).value)
     instanceID = EX.toStr(dataSet.get(pydicom.tag.Tag(0x008, 0x0018)).value)
-    patientDirectory = os.path.join(obj['folderForPatients'], patientID, studyID, seriesID)
-    patientDirectoryForSync = os.path.join(obj['folderForFTPSynch'], patientID, studyID, seriesID)
+    patientDirectory = os.path.join(obj['folderForPatients'], sanitize_folder_name(patientID), studyID, seriesID)
+    patientDirectoryForSync = os.path.join(obj['folderForFTPSynch'], sanitize_folder_name(patientID), studyID, seriesID)
     folderForImporter = os.path.join(obj['folderForImporter'], patientID, studyID)    
     folderForTemplate = os.path.join(obj['folderForTemplate'], "EmptyReport.json")
     
@@ -87,7 +122,7 @@ def parser(dataSet, obj, root):
         if ((dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value == "RGB" and b'\xff\xc3' in dataSet.PixelData) or dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value == "MONOCHROME2" ) and EX.toStr(dataSet.get(modality).value) != "SR":
             oldDcm = "old" + str(time.time()) + ".dcm" 
             ljpeg = "ljpeg" + str(time.time()) + ".dcm"
-            pydicom.write_file(oldDcm, dataSet, True)
+            pydicom.dcmwrite(oldDcm, dataSet, True)
             subprocess.run(["gdcmconv", "--raw", oldDcm, ljpeg])
             #subprocess.run([gdcm_path, "--raw", oldDcm, ljpeg])
             ljpegDataSet = pydicom.dcmread(ljpeg)
@@ -101,7 +136,10 @@ def parser(dataSet, obj, root):
             ip.imageToPng(dataSet, obj)
 
     elif EX.toStr(dataSet.get(modality).value) == "SR":
-        sr.extractReport(dataSet, obj)
+        if defaultModality == "OBGYN":
+            sr.extractReportOBGYN(dataSet, obj)
+        if defaultModality == "ECHO":    
+            sr.extractReport(dataSet, obj)
 
     else:
         print("Modality not implemented")
@@ -449,6 +487,9 @@ def initiateIngestion(dicomPath):
         patientID = EX.toStr(ds.get(pydicom.tag.Tag(0x0010, 0x0020)).value)
         studyID = EX.toStr(ds.get(pydicom.tag.Tag(0x0020, 0x000d)).value)
         seriesID = EX.toStr(ds.get(pydicom.tag.Tag(0x0020, 0x000e)).value)
+
+        patientID = sanitize_folder_name(patientID);
+
 
         FILES_PER_CHUNK = 5
 

@@ -1,6 +1,17 @@
-numpngw==0.0.8
-numpy==1.16.4
-opencv-python==4.1.0.25
-pydicom==1.2.2
-scikit-video==1.1.11
-urllib3==1.25.3
+# Core numerical stack (OpenCV compatible)
+numpy>=2.2,<2.3
+
+# Image + video
+opencv-python==4.12.0.88
+imageio==2.37.0
+imageio-ffmpeg==0.6.0
+pillow>=10.0
+
+# DICOM
+pydicom>=3.0.1
+
+# PNG writing
+numpngw>=0.1.4
+
+
+
