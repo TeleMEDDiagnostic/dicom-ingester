@@ -327,9 +327,9 @@ def processChild(dataSet, level, parent, elements, child, anonymizedPatientName)
         #print("\n" + spaces + "Child " + str(counter) + ", level " + str(level))
         currentItem = value
         currentLevel = EX.toStr(level)
-        print("parent_level " + parent )
-        print("-------title " + head)
-        print("-------level " + currentLevel + "; " +  " currentElement: " + currentItem )
+        # print("parent_level " + parent )
+        # print("-------title " + head)
+        # print("-------level " + currentLevel + "; " +  " currentElement: " + currentItem )
         if contentSequence is not None:
             #print(spaces + "Entering level ------------" + str(level + 1))            
             processChild(contentSequence.value, level + 1, parent, elements, child, anonymizedPatientNameEx)

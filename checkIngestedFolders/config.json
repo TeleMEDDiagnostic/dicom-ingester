@@ -1,9 +1,10 @@
 {
     "folderForFolderToCheck": "D:\\FolderToCheck",
     "processedEchoFolder" : "D:\\processed/", 
-    "incomingFolder" : "C:\\echos\\folderMoveTest",
-    "singleFrame_colorPlate": 38, 
-    "multiFrame_colorPlate": 38,
-    "thumnNail_colorPlate": 38
+    "incomingFolder" : "D:\\IngesterData\\Importer",
+    "singleFrame_colorPlate": "BGR2RGB", 
+    "multiFrame_colorPlate": "BGR2RGB",
+    "thumbNail_colorPlate": "BGR2RGB",
+    "anonymizedPatientName" : false
 
 }

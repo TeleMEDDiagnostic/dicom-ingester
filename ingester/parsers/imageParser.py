@@ -14,6 +14,28 @@ import imageio.v3 as iio
 import imageio
 import random
 import tools.stringUtil as su
+import re
+from pathlib import Path
+
+
+# Windows reserved filenames
+_RESERVED_NAMES = {
+    "CON", "PRN", "AUX", "NUL",
+    *(f"COM{i}" for i in range(1, 10)),
+    *(f"LPT{i}" for i in range(1, 10))
+}
+
+def sanitize_folder_name(folder_name):
+    folder_name = Path(folder_name).name
+    folder_name = re.sub(r'[<>:"/\\|?*]', "_", folder_name)
+    folder_name = re.sub(r'[\x00-\x1F]', "", folder_name)
+    folder_name = folder_name.rstrip(" .")
+
+    if folder_name.upper() in _RESERVED_NAMES:
+        folder_name = "_" + folder_name
+
+    return folder_name or "NewFolder"
+
 def regionFlags(element, reference):
   flags = []
 
@@ -355,11 +377,11 @@ def imageToPng(dataSet, obj):
         regions.append(processImageRegion(imageRegion))
 
     dicomData["Image"]["regions"] = regions
-    patientDir = obj['folderForPatients'] + "/" + EX.toStr(dicomData["Patient"]["PatientID"].value) + "/" + EX.toStr(dicomData["Test"]["StudyInstanceUID"].value) + "/" + EX.toStr(dicomData["Test"]["SeriesInstanceUID"].value) + "/" + EX.toStr(dicomData["Test"]["SOPInstanceUID"].value)
+    patientDir = obj['folderForPatients'] + "/" + sanitize_folder_name( EX.toStr(dicomData["Patient"]["PatientID"].value)) + "/" + EX.toStr(dicomData["Test"]["StudyInstanceUID"].value) + "/" + EX.toStr(dicomData["Test"]["SeriesInstanceUID"].value) + "/" + EX.toStr(dicomData["Test"]["SOPInstanceUID"].value)
     if not os.path.exists(patientDir):
         os.makedirs(patientDir)
 
-    print(dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value)
+    #print(dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value)
     colorPlate = 0;
     # if(dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value == 'YBR_FULL'  or dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value == 'YBR_FULL_422'):
     #   colorPlate = cv2.COLOR_YCrCb2RGB #cv2.COLOR_YCrCb2BGR
@@ -369,7 +391,7 @@ def imageToPng(dataSet, obj):
     colorPlate = obj["singleFrame_colorPlate"];
 
 
-    print(colorPlate);
+    #print(colorPlate);
 
 
     # Single-frame
