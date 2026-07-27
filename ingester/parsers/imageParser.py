@@ -148,16 +148,6 @@ def createTiledImage(arrayOfFrames, resolution, numberOfTiles):
 
     return numpy.array(tiledImage, dtype = numpy.uint8)
 
-# def mask_string(s, perc=0.6):
-#     mask_chars = ceil(len(s) * perc)
-#     return f'{"*" * mask_chars}{s[mask_chars:]}'
-
-# def getPatientName(name):
-#   nameSplited = name.split('^')
-#   maskedName = ''
-#   for item in nameSplited:
-#     maskedName += mask_string(item) + '^'
-#   return maskedName
 
 
 def generateInfoFile(dicomInfo, folder, anonymizedPatientName, scaleFactor = 0):
@@ -383,11 +373,7 @@ def imageToPng(dataSet, obj):
 
     #print(dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value)
     colorPlate = 0;
-    # if(dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value == 'YBR_FULL'  or dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value == 'YBR_FULL_422'):
-    #   colorPlate = cv2.COLOR_YCrCb2RGB #cv2.COLOR_YCrCb2BGR
-    # else:
-    #   colorPlate = cv2.COLOR_RGB2BGR
-
+   
     colorPlate = obj["singleFrame_colorPlate"];
 
 
@@ -398,11 +384,6 @@ def imageToPng(dataSet, obj):
     if dicomData["Image"]["numberOfFrames"] is None:
         print("Single-frame")
         start = time.time()
-        #For YBR_Full = cv2.COLOR_YUV2RGB
-       
-        # cv2.imwrite(
-        #         patientDir + "/image.png", cv2.cvtColor(dataSet.pixel_array, colorPlate), [cv2.IMWRITE_PNG_COMPRESSION, 5])
-        
         frame = dataSet.pixel_array
 
         if frame.ndim == 2 or frame.shape[-1] == 1:
@@ -427,13 +408,7 @@ def imageToPng(dataSet, obj):
     # Multi-frame
     else:
         
-        # if(dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value == 'YBR_FULL'  or dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value == 'YBR_FULL_422'):
-        #   colorPlate =  cv2.COLOR_YUV2RGB #cv2.COLOR_YCrCb2BGR
-        # else:
-        #   colorPlate = cv2.COLOR_RGB2BGR
-
-        #colorPlate = obj["thumnNail_colorPlate"]
-          
+                 
         print("Multi-frame")
         print(len(dataSet.PixelData))
         newArray = []
@@ -447,28 +422,7 @@ def imageToPng(dataSet, obj):
         else:
             delayInMl = 50
 
-        # generate preview
-
-        # cv2.imwrite(
-        #         patientDir + "/image.png", cv2.cvtColor(dataSet.pixel_array[0], colorPlate), [cv2.IMWRITE_JPEG2000_COMPRESSION_X1000, 5])
-        # cv2.imwrite(
-        #         patientDir + "/image.png", cv2.cvtColor(dataSet.pixel_array[0], colorPlate), [cv2.IMWRITE_PNG_COMPRESSION, 5])
-        
-        #after thumbnail issue
-        # frame = dataSet.pixel_array
-
-        # if frame.ndim == 2 or frame.shape[-1] == 1:
-        #     output = frame
-        # elif colorPlate != 0:
-        #     output = safe_cvt(frame, colorPlate); #cv2.cvtColor(frame, colorPlate)
-        # else:
-        #     output = frame
-
-        # cv2.imwrite(
-        #     patientDir + "/image.png",
-        #     output,
-        #     [cv2.IMWRITE_PNG_COMPRESSION, 5])
-        #3md
+        # generate preview     
   
         
 
@@ -532,22 +486,7 @@ def imageToPng(dataSet, obj):
         print("The delay is " + str(delayInMl))
         start = time.time()
 
-        # ffmpeg args from https://gist.github.com/docPhil99/a612c355cd31e69a0d3a6d2f87bfde8b
-        # writer = skvideo.io.FFmpegWriter(patientDir + "/image.mp4", outputdict={
-        #     '-vcodec': 'libx264',  # use the h.264 codec
-        #     '-pix_fmt': 'yuv420p', # use a lower-bitrate encoding to support Firefox
-        #     '-crf': '15',          # constant rate factor between 0 (lossless) and 52 (worst)
-        #     '-preset':'veryslow'   # the slower the better compression, in princple, try 
-        #                            # other options see https://trac.ffmpeg.org/wiki/Encode/H.264
-        # })
-
-        # writer = skvideo.io.FFmpegWriter(patientDir + "/image.mp4", outputdict={
-        #     '-vcodec': 'libx264',  # use the h.264 codec
-        #     '-pix_fmt': 'yuv420p', # use a lower-bitrate encoding to support Firefox
-        #     '-crf': '15',          # constant rate factor between 0 (lossless) and 52 (worst)
-        #     '-preset':'veryslow'   # the slower the better compression, in princple, try 
-        #                            # other options see https://trac.ffmpeg.org/wiki/Encode/H.264
-        # })
+       
 
         writer = imageio.get_writer(
           patientDir + "/image.mp4",
@@ -562,18 +501,7 @@ def imageToPng(dataSet, obj):
 
         colorPlate = obj["multiFrame_colorPlate"]
 
-        # for frame in dataSet.pixel_array:
-        #     #if(dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value == 'YBR_FULL' or dataSet.get(pydicom.tag.Tag(0x0028, 0x0004)).value == 'YBR_FULL_422'):
-        #     if(colorPlate != 0):             
-        #       writer.writeFrame(cv2.cvtColor(frame, colorPlate))
-        #     else:
-        #       writer.writeFrame(frame)
-
-        # for frame in dataSet.pixel_array:
-        #   if colorPlate != 0:
-        #       writer.append_data(cv2.cvtColor(frame, colorPlate))
-        #   else:
-        #       writer.append_data(frame)
+        
         for frame in dataSet.pixel_array:
           if frame.ndim == 2 or frame.shape[-1] == 1:
               writer.append_data(frame)
@@ -587,13 +515,7 @@ def imageToPng(dataSet, obj):
 
         print("Generated MP4 in " + str(time.time() - start))
 
-        # generate thumbnails
-        # start = time.time()
-        # cv2.imwrite(
-        #         patientDir + "/thumbnails.png", cv2.UMat(
-        #             cv2.cvtColor(createTiledImage(newArray, [int(dicomData["Image"]["rows"].value  * obj['scaleFactor']), int(dicomData["Image"]["columns"].value * obj['scaleFactor'])], dicomData["Image"]["numberOfFrames"].value),colorPlate)))
-        # print(time.time() - start)        
-        # print("Done processing image")
+      
 
 
         generateInfoFile(dicomData, patientDir, obj["anonymizedPatientName"], obj["scaleFactor"])
