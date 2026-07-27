@@ -453,22 +453,82 @@ def imageToPng(dataSet, obj):
         #         patientDir + "/image.png", cv2.cvtColor(dataSet.pixel_array[0], colorPlate), [cv2.IMWRITE_JPEG2000_COMPRESSION_X1000, 5])
         # cv2.imwrite(
         #         patientDir + "/image.png", cv2.cvtColor(dataSet.pixel_array[0], colorPlate), [cv2.IMWRITE_PNG_COMPRESSION, 5])
-        frame = dataSet.pixel_array
+        
+        #after thumbnail issue
+        # frame = dataSet.pixel_array
 
-        if frame.ndim == 2 or frame.shape[-1] == 1:
+        # if frame.ndim == 2 or frame.shape[-1] == 1:
+        #     output = frame
+        # elif colorPlate != 0:
+        #     output = safe_cvt(frame, colorPlate); #cv2.cvtColor(frame, colorPlate)
+        # else:
+        #     output = frame
+
+        # cv2.imwrite(
+        #     patientDir + "/image.png",
+        #     output,
+        #     [cv2.IMWRITE_PNG_COMPRESSION, 5])
+        #3md
+  
+        
+
+        pixel_array = dataSet.pixel_array
+
+        print("Complete DICOM pixel array shape:", pixel_array.shape)
+
+        # Select one image from the DICOM pixel array.
+        if pixel_array.ndim == 4:
+            # Multi-frame RGB/RGBA.
+            frame = pixel_array[0]
+
+        elif pixel_array.ndim == 3:
+            if pixel_array.shape[-1] in (3, 4):
+                # Single-frame RGB/RGBA.
+                frame = pixel_array
+            else:
+                # Multi-frame grayscale.
+                frame = pixel_array[0]
+
+        elif pixel_array.ndim == 2:
+            # Single-frame grayscale.
+            frame = pixel_array
+
+        else:
+            raise ValueError(
+                "Unsupported DICOM pixel array shape: "
+                + str(pixel_array.shape)
+            )
+
+        print("Thumbnail source frame shape:", frame.shape)
+
+        if frame.ndim == 2:
             output = frame
+
+        elif frame.ndim == 3 and frame.shape[-1] == 1:
+            output = frame[:, :, 0]
+
         elif colorPlate != 0:
-            output = safe_cvt(frame, colorPlate); #cv2.cvtColor(frame, colorPlate)
+            output = safe_cvt(frame, colorPlate)
+
         else:
             output = frame
 
-        cv2.imwrite(
-            patientDir + "/image.png",
+        print("Thumbnail output shape:", output.shape)
+
+        thumbnail_path = patientDir + "/image.png"
+
+        success = cv2.imwrite(
+            thumbnail_path,
             output,
-            [cv2.IMWRITE_PNG_COMPRESSION, 5])
+            [cv2.IMWRITE_PNG_COMPRESSION, 5]
+        )
 
+        if not success:
+            raise RuntimeError(
+                "OpenCV failed to create thumbnail: " + thumbnail_path
+            )
 
-        # generate MP4s
+        # Generate MP4.
         print("The delay is " + str(delayInMl))
         start = time.time()
 
@@ -494,6 +554,7 @@ def imageToPng(dataSet, obj):
           fps=25,
           codec="libx264",
           pixelformat="yuv420p",
+          macro_block_size=1,
           ffmpeg_params=[
               "-crf", "15",
               "-preset", "veryslow"
