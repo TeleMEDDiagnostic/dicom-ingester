@@ -259,6 +259,8 @@ COLOR_MAP = {
     "GRAY2RGB": cv2.COLOR_GRAY2RGB,
     "BGR2RGB": cv2.COLOR_BGR2RGB,
     "BGRA2RGB": cv2.COLOR_BGRA2RGB,
+    "YCrCb2BGR": cv2.COLOR_YCrCb2BGR,
+    "YCrCb2RGB" : cv2.COLOR_YCrCb2RGB,
 }
 
 def safe_cvt(frame, colorPlate=None):
@@ -292,6 +294,9 @@ def safe_cvt(frame, colorPlate=None):
             "GRAY2RGB": 1,
             "BGR2RGB": 3,
             "BGRA2RGB": 4,
+            "YCrCb2BGR": 3,
+            "YCrCb2RGB": 3,
+            
         }[colorPlate]
 
         if frame.ndim == 3 and frame.shape[2] != required_channels:
