@@ -258,59 +258,98 @@ def returnElementNotNullReturnStr(elem):
 COLOR_MAP = {
     "GRAY2RGB": cv2.COLOR_GRAY2RGB,
     "BGR2RGB": cv2.COLOR_BGR2RGB,
+    "RGB2BGR": cv2.COLOR_RGB2BGR,
     "BGRA2RGB": cv2.COLOR_BGRA2RGB,
+    "RGBA2BGR": cv2.COLOR_RGBA2BGR,
     "YCrCb2BGR": cv2.COLOR_YCrCb2BGR,
-    "YCrCb2RGB" : cv2.COLOR_YCrCb2RGB,
+    "YCrCb2RGB": cv2.COLOR_YCrCb2RGB,
 }
 
 def safe_cvt(frame, colorPlate=None):
     if frame is None:
         return None
-    
 
     frame = np.asarray(frame)
 
-    # AUTO mode (recommended)
-    if colorPlate is None or colorPlate == "AUTO":
+    # No colour conversion
+    if colorPlate in (None, 0, "NONE", "RGB"):
+        return frame
+
+    if colorPlate == "AUTO":
         if frame.ndim == 2:
-            return cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
+            return frame
 
         if frame.ndim == 3:
-            if frame.shape[2] == 1:
-                return cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
-            if frame.shape[2] == 3:
-                return cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            if frame.shape[2] == 4:
-                return cv2.cvtColor(frame, cv2.COLOR_BGRA2RGB)
+            channels = frame.shape[-1]
 
-        raise ValueError(f"AUTO conversion failed for shape {frame.shape}")
+            if channels == 1:
+                return frame[:, :, 0]
 
-    # Explicit mode
-    if isinstance(colorPlate, str):
-        if colorPlate not in COLOR_MAP:
-            raise ValueError(f"Unsupported colorPlate '{colorPlate}'")
+            if channels == 3:
+                # pydicom normally returns RGB
+                return frame
 
-        required_channels = {
-            "GRAY2RGB": 1,
-            "BGR2RGB": 3,
-            "BGRA2RGB": 4,
-            "YCrCb2BGR": 3,
-            "YCrCb2RGB": 3,
-            
-        }[colorPlate]
+            if channels == 4:
+                return cv2.cvtColor(
+                    frame,
+                    cv2.COLOR_RGBA2RGB
+                )
 
-        if frame.ndim == 3 and frame.shape[2] != required_channels:
-            raise ValueError(
-                f"{colorPlate} requires {required_channels} channels, "
-                f"got {frame.shape}"
-            )
+        raise ValueError(
+            f"AUTO conversion failed for shape {frame.shape}"
+        )
 
-        if frame.ndim == 2 and required_channels != 1:
-            raise ValueError(f"{colorPlate} requires multi-channel input")
+    color_map = {
+        "GRAY2RGB": cv2.COLOR_GRAY2RGB,
+        "BGR2RGB": cv2.COLOR_BGR2RGB,
+        "RGB2BGR": cv2.COLOR_RGB2BGR,
+        "BGRA2RGB": cv2.COLOR_BGRA2RGB,
+        "RGBA2BGR": cv2.COLOR_RGBA2BGR,
+        "YCrCb2BGR": cv2.COLOR_YCrCb2BGR,
+        "YCrCb2RGB": cv2.COLOR_YCrCb2RGB,
+    }
 
-        return cv2.cvtColor(frame, COLOR_MAP[colorPlate])
+    required_channels = {
+        "GRAY2RGB": 1,
+        "BGR2RGB": 3,
+        "RGB2BGR": 3,
+        "BGRA2RGB": 4,
+        "RGBA2BGR": 4,
+        "YCrCb2BGR": 3,
+        "YCrCb2RGB": 3,
+    }
 
-    raise TypeError("colorPlate must be a string or None")
+    if not isinstance(colorPlate, str):
+        raise TypeError(
+            "colorPlate must be a string, zero, or None"
+        )
+
+    if colorPlate not in color_map:
+        raise ValueError(
+            f"Unsupported colorPlate '{colorPlate}'"
+        )
+
+    expected_channels = required_channels[colorPlate]
+
+    if frame.ndim == 2:
+        actual_channels = 1
+    elif frame.ndim == 3:
+        actual_channels = frame.shape[-1]
+    else:
+        raise ValueError(
+            f"Unsupported image shape: {frame.shape}"
+        )
+
+    if actual_channels != expected_channels:
+        raise ValueError(
+            f"{colorPlate} requires {expected_channels} channels, "
+            f"but received shape {frame.shape}"
+        )
+
+    return cv2.cvtColor(
+        frame,
+        color_map[colorPlate]
+    )
 
 
 
@@ -387,7 +426,8 @@ def imageToPng(dataSet, obj):
 
     # Single-frame
     if dicomData["Image"]["numberOfFrames"] is None:
-        print("Single-frame")
+        colorPlate = obj["singleFrame_colorPlate"];
+        print("Single-frame", colorPlate)
         start = time.time()
         frame = dataSet.pixel_array
 
@@ -413,8 +453,8 @@ def imageToPng(dataSet, obj):
     # Multi-frame
     else:
         
-                 
-        print("Multi-frame")
+        colorPlate = obj["multiFrame_colorPlate"];         
+        print("Multi-frame", colorPlate)
         print(len(dataSet.PixelData))
         newArray = []
         for i in range(dicomData["Image"]["numberOfFrames"].value):
@@ -466,11 +506,16 @@ def imageToPng(dataSet, obj):
         elif frame.ndim == 3 and frame.shape[-1] == 1:
             output = frame[:, :, 0]
 
-        elif colorPlate != 0:
-            output = safe_cvt(frame, colorPlate)
+        # elif colorPlate != 0:
+        #     output = safe_cvt(frame, colorPlate)
 
-        else:
-            output = frame
+        # else:
+        #     output = frame
+        thumbnail_color_plate = obj["thumbNail_colorPlate"]
+        output = safe_cvt(
+            frame,
+            thumbnail_color_plate
+        )
 
         print("Thumbnail output shape:", output.shape)
 
