@@ -164,11 +164,11 @@ def processChildOBG_SR(dataSet, level, parent, elements, child, anonymizedPatien
         if val is not None:
             #print(value)
             global currentElement
-            if head is not None and level == 0:
+            if currentHead is not None and level == 0 :
                 parent = key
                 child = val               
                 currentElement = val
-                srData2["report"]["findingSite"].append(createFindingSite(head))
+                srData2["report"]["findingSite"].append(createFindingSite(currentHead))
 
         if val is not None:
             #print(value)
@@ -583,6 +583,8 @@ def fillSRDataOBG(key, value, unit, parent, currentChild, level, label, head, an
                     
     if head == "Summary":
         fillHeadItemOBG(key, value, unit, parent,level, label, head)
+    if head == "Patient Characteristics":
+        fillHeadItemOBG(key, value, unit, parent,level, label, head)
 
     if head == "Fetus Summary":
         fillHeadItemOBG(key, value, unit, parent,level, label, head)
@@ -613,6 +615,16 @@ def fillSRDataOBG(key, value, unit, parent, currentChild, level, label, head, an
         fillHeadItemOBG(key, value, unit, parent,level, label, head)
 
     if head == "MVP":
+        fillHeadItemOBG(key, value, unit, parent,level, label, head)
+    if head == "Pelvis and Uterus":
+        fillHeadItemOBG(key, value, unit, parent,level, label, head)
+    if head == "Uterus":
+        fillHeadItemOBG(key, value, unit, parent,level, label, head)
+    if head == "Findings":
+        fillHeadItemOBG(key, value, unit, parent,level, label, head)
+    if head == "Ovary":
+            fillHeadItemOBG(key, value, unit, parent,level, label, head)
+    if head == "Measurement Group":
         fillHeadItemOBG(key, value, unit, parent,level, label, head)
      
      
@@ -739,6 +751,10 @@ def extractReportOBGYN(dataSet, obj):
     obj2 = {}
     if dataSet.get(pydicom.tag.Tag(0x0010,0x0010)) is not None:
         obj2["Patient Name"] = EX.toStr(dataSet.get(pydicom.tag.Tag(0x0010,0x0010)).value)
+        srData2["report"]["patient"] |= obj2
+    obj2 = {}
+    if dataSet.get(pydicom.tag.Tag(0x0010,0x0020)) is not None:
+        obj2["Patient ID"] = EX.toStr(dataSet.get(pydicom.tag.Tag(0x0010,0x0020)).value)
         srData2["report"]["patient"] |= obj2
 
     
