@@ -168,11 +168,19 @@ def processChildOBG_SR(dataSet, level, parent, elements, child, anonymizedPatien
                 parent = key
                 child = val               
                 currentElement = val
-                srData2["report"]["findingSite"].append(createFindingSite(currentHead))
+                srData2["report"]["findingSite"].append(createFindingSite2(currentHead))
+
+            if "Group" in currentHead and level == 1 :
+                parent = key
+                child = val               
+                currentElement = val
+                index = len( srData2["report"]["findingSite"])
+                srData2["report"]["findingSite"][index -1]["measurementGroups"].append({"Group": []})
+            
 
         if val is not None:
             #print(value)
-            if key == "Label"  and level == 2:
+            if key == "Label" and level == 2:
                 parent = key
                 label = val
                 
@@ -538,8 +546,34 @@ def fillSRData(key, value, unit, parent, currentChild, level, label, anonymizedP
                 srData["report"]["userDefined"].append({"Key": lastUserDefinedKey.replace("'", ""), "Value": '{:.2f}'.format(float(valueNumber)), "Unit": unit})
 def fillHeadItemOBG(key, value, unit, parent,level, label, head): 
     obj = {}  
+
+    if "Group" in head: 
+        if level == 1 :
+                    index = len( srData2["report"]["findingSite"])
+                    index2 = len(srData2["report"]["findingSite"][index -1]["measurementGroups"])
+                    index3 = len(srData2["report"]["findingSite"][index -1]["measurementGroups"][index2 -1]["Group"])
+                    srData2["report"]["findingSite"][index -1]["measurementGroups"]
+        
+                    valueNumber = GetValueNumber(value, unit)
+        
+                    res = chechIfAlreadyExist(srData2["report"]["findingSite"][index -1]["measurementGroups"][index2 -1]["Group"], key.replace("'", ""), valueNumber, unit)
+                    if(res):
+                        if(unit != ""):
+                            srData2["report"]["findingSite"][index -1]["measurementGroups"][index2 -1]["Group"].append( {
+                                "Key": key.replace("'", ""),
+                                "Value": valueNumber,
+                                "Unit": unit,
+                                "Infos": []
+                            })
+                        else: srData2["report"]["findingSite"][index -1]["measurementGroups"][index2 -1]["Group"].append( {
+                                "Key": key.replace("'", ""),
+                                "Value": valueNumber,
+                                "Unit": "",
+                                "Infos": []
+                            })
+
     if head != "":
-        if level == 1 or level == 2:
+        if level == 1 and "Group" not in head:
             index = len( srData2["report"]["findingSite"])
             index2 = len(srData2["report"]["findingSite"][index -1]["measurements"])
             srData2["report"]["findingSite"][index -1]["measurements"]
@@ -562,18 +596,33 @@ def fillHeadItemOBG(key, value, unit, parent,level, label, head):
                         "Infos": []
                     })
 
-        if level == 3 or level == 4:
-            index = len( srData2["report"]["findingSite"])
-            index2 = len(srData2["report"]["findingSite"][index-1]["measurements"])
-            if(index > 0 and index2 > 0):
-                valueNumber = ''
-                if(is_number(value) and unit != ''):
-                    valueNumber = '{:.2f}'.format(float(value))
-                else:
-                    valueNumber = value           
-                res = chechIfAlreadyExist(srData2["report"]["findingSite"][index -1]["measurements"][index2-1]["Infos"], key.replace("'", ""), valueNumber, unit)
-                if(res):
-                    srData2["report"]["findingSite"][index -1]["measurements"][index2-1]["Infos"].append({"Key": key.replace("'", ""), "Value": valueNumber})
+        if level == 3 or level == 4 or level == 2:
+            if "Group" in head:
+                index = len( srData2["report"]["findingSite"])
+                index2 = len(srData2["report"]["findingSite"][index-1]["measurementGroups"])
+                index3 = len(srData2["report"]["findingSite"][index -1]["measurementGroups"][index2 -1]["Group"])
+                if(index > 0 and index2 > 0):
+                    valueNumber = ''
+                    if(is_number(value) and unit != ''):
+                        valueNumber = '{:.2f}'.format(float(value))
+                    else:
+                        valueNumber = value       
+                        
+                    res = chechIfAlreadyExist(srData2["report"]["findingSite"][index -1]["measurementGroups"][index2 -1]["Group"][index3-1]["Infos"], key.replace("'", ""), valueNumber, unit)
+                    if(res):
+                        srData2["report"]["findingSite"][index -1]["measurementGroups"][index2-1]["Group"][index3-1]["Infos"].append({"Key": key.replace("'", ""), "Value": valueNumber})
+            else:
+                index = len( srData2["report"]["findingSite"])
+                index2 = len(srData2["report"]["findingSite"][index-1]["measurements"])
+                if(index > 0 and index2 > 0):
+                    valueNumber = ''
+                    if(is_number(value) and unit != ''):
+                        valueNumber = '{:.2f}'.format(float(value))
+                    else:
+                        valueNumber = value           
+                    res = chechIfAlreadyExist(srData2["report"]["findingSite"][index -1]["measurements"][index2-1]["Infos"], key.replace("'", ""), valueNumber, unit)
+                    if(res):
+                        srData2["report"]["findingSite"][index -1]["measurements"][index2-1]["Infos"].append({"Key": key.replace("'", ""), "Value": valueNumber})
      
 def fillSRDataOBG(key, value, unit, parent, currentChild, level, label, head, anonymizedPatientName):
     obj = {}  
@@ -596,7 +645,7 @@ def fillSRDataOBG(key, value, unit, parent, currentChild, level, label, head, an
         fillHeadItemOBG(key, value, unit, parent,level, label, head)
 
     if head == "Biometry Group":
-        fillHeadItemOBG(key, value, unit, parent,level, label, head)
+        fillHeadItemOBG(key, value, unit, parent,level -1, label, head)
 
     if head == "Fetal Cranium":
         fillHeadItemOBG(key, value, unit, parent,level, label, head)
@@ -609,7 +658,7 @@ def fillSRDataOBG(key, value, unit, parent, currentChild, level, label, head, an
         fillHeadItemOBG(key, value, unit, parent,level, label, head)
 
     if head == "Doppler Group":
-        fillHeadItemOBG(key, value, unit, parent,level, label, head)
+        fillHeadItemOBG(key, value, unit, parent,level -1, label, head)
 
     if head == "Maternal Doppler":
         fillHeadItemOBG(key, value, unit, parent,level, label, head)
@@ -625,7 +674,7 @@ def fillSRDataOBG(key, value, unit, parent, currentChild, level, label, head, an
     if head == "Ovary":
             fillHeadItemOBG(key, value, unit, parent,level, label, head)
     if head == "Measurement Group":
-        fillHeadItemOBG(key, value, unit, parent,level, label, head)
+        fillHeadItemOBG(key, value, unit, parent,level -1, label, head)
      
      
     if parent == "patient":
@@ -653,6 +702,11 @@ def fillSRDataOBG(key, value, unit, parent, currentChild, level, label, head, an
 
 def createFindingSite(Name):
     return { "Name": Name,
+    "measurements": []
+    }
+def createFindingSite2(Name):
+    return { "Name": Name,
+    "measurementGroups": [],     
     "measurements": []
     }
 
