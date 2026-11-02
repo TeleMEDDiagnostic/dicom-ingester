@@ -55,6 +55,7 @@ def sanitize_folder_name(folder_name):
 
     return folder_name or "NewFolder"
 
+
 def processChildOBG_SR(dataSet, level, parent, elements, child, anonymizedPatientName):
     counter = 0
     spaces = "     " * level
@@ -164,6 +165,7 @@ def processChildOBG_SR(dataSet, level, parent, elements, child, anonymizedPatien
         if val is not None:
             #print(value)
             global currentElement
+            global groupCounter
             if currentHead is not None and level == 0 :
                 parent = key
                 child = val               
@@ -175,7 +177,11 @@ def processChildOBG_SR(dataSet, level, parent, elements, child, anonymizedPatien
                 child = val               
                 currentElement = val
                 index = len( srData2["report"]["findingSite"])
-                srData2["report"]["findingSite"][index -1]["measurementGroups"].append({"Group": []})
+                groupCounter += 1
+                srData2["report"]["findingSite"][index - 1]["measurementGroups"].append({
+                    "id": groupCounter,
+                    "Group": []
+                })
             
 
         if val is not None:
@@ -801,7 +807,15 @@ def extractReportOBGYN(dataSet, obj):
     if dataSet.get(pydicom.tag.Tag(0x0008,0x0050)) is not None:
         obj2["Accession"] = EX.toStr(dataSet.get(pydicom.tag.Tag(0x0008,0x0050)).value)
         srData2["report"]["patient"] |= obj2
-    
+    obj2 = {}
+    if dataSet.get(pydicom.tag.Tag(0x0008,0x0020)) is not None:
+        obj2["Study Date"] = EX.toStr(dataSet.get(pydicom.tag.Tag(0x0008,0x0020)).value)
+        srData2["report"]["patient"] |= obj2
+    obj2 = {}
+    if dataSet.get(pydicom.tag.Tag(0x0008,0x0030)) is not None:
+        obj2["Study Time"] = EX.toStr(dataSet.get(pydicom.tag.Tag(0x0008,0x0030)).value)
+        srData2["report"]["patient"] |= obj2
+
     obj2 = {}
     if dataSet.get(pydicom.tag.Tag(0x0010,0x0010)) is not None:
         obj2["Patient Name"] = EX.toStr(dataSet.get(pydicom.tag.Tag(0x0010,0x0010)).value)
@@ -860,6 +874,10 @@ def extractReportOBGYN(dataSet, obj):
     if dataSet.get(pydicom.tag.Tag(0x0020,0x0013)) is not None:
         obj2["Instance Number"] = EX.toStr(dataSet.get(pydicom.tag.Tag(0x0020,0x0013)).value)
         srData2["report"]["patient"] |= obj2
+    obj2 = {}
+    # if dataSet.get(pydicom.tag.Tag(0x0008,0x0104)) is not None:
+    #     obj2["Number of Fetuses"] = EX.toStr(dataSet.get(pydicom.tag.Tag(0x0008,0x0104)).value)
+    #     srData2["report"]["patient"] |= obj2
 
 
     if dataSet.get(pydicom.tag.Tag(0x0040, 0xa730)) is not None:
@@ -871,6 +889,8 @@ def extractReportOBGYN(dataSet, obj):
 
     if dataSet.get(pydicom.tag.Tag(0x0040, 0xa730)) is not None:
         test01 = dataSet.get(pydicom.tag.Tag(0x0040, 0xa730)).value
+        global groupCounter
+        groupCounter = 0
         processChildOBG_SR(dataSet.get(pydicom.tag.Tag(0x0040, 0xa730)).value, 0, "patient", numberOfElements, "", obj["anonymizedPatientName"])
     
     print("Number of elements " + str(numberOfElements[0]))
